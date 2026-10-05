@@ -88,6 +88,12 @@ export function isSameOriginMutation(
   const origin = req.get("origin");
   if (!origin) return false;
   try {
+    // In the v0 preview, the browser origin can differ from the internal host
+    // Express receives after the reverse proxy forwards the request. The
+    // browser's Fetch Metadata header still proves the mutation came from the
+    // current same-origin document, so accept that verified case before
+    // comparing proxy hostnames.
+    if (req.get("sec-fetch-site") === "same-origin") return true;
     const suppliedOrigin = parseOrigin(origin, "Origin do pedido");
     const configuredOrigins = configuredOriginKeys
       .map(key => process.env[key]?.trim())
