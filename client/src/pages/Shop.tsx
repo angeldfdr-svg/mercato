@@ -21,9 +21,11 @@ export default function Shop() {
   const params = new URLSearchParams(location.split("?")[1] ?? "");
   const query = params.get("query") ?? "";
   const categoryParam = params.get("category") ?? "Todos";
-  const category = categories.includes(categoryParam as Category | "Todos")
+  const initialCategory = categories.includes(categoryParam as Category | "Todos")
     ? (categoryParam as Category | "Todos")
     : "Todos";
+  const [selectedCategory, setSelectedCategory] = useState<"Todos" | Category>(initialCategory);
+  const category = selectedCategory;
   const [sort, setSort] = useState("featured");
   const [mobileFilters, setMobileFilters] = useState(false);
 
@@ -50,6 +52,7 @@ export default function Shop() {
   }, [category, query, sort]);
 
   const chooseCategory = (next: "Todos" | Category) => {
+    setSelectedCategory(next);
     const nextParams = new URLSearchParams();
     if (next !== "Todos") nextParams.set("category", next);
     if (query) nextParams.set("query", query);
