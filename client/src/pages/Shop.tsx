@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useLocation } from "wouter";
-import { ArrowUpDown, Search, SlidersHorizontal, X } from "lucide-react";
+import { ArrowUpDown, Search, X } from "lucide-react";
 import { categoryMeta, products, type Category } from "@/data/catalog";
 import { ProductCard } from "@/components/ProductCard";
 import { Button } from "@/components/ui/button";
@@ -27,7 +27,6 @@ export default function Shop() {
   const [selectedCategory, setSelectedCategory] = useState<"Todos" | Category>(initialCategory);
   const category = selectedCategory;
   const [sort, setSort] = useState("featured");
-  const [mobileFilters, setMobileFilters] = useState(false);
 
   const filtered = useMemo(() => {
     const normalizedSearch = normalizeSearch(query);
@@ -100,15 +99,6 @@ export default function Shop() {
           ))}
         </div>
         <div className="toolbar-actions">
-          <button
-            type="button"
-            className="toolbar-button"
-            onClick={() => setMobileFilters(true)}
-            aria-expanded={mobileFilters}
-            aria-controls="shop-filters"
-          >
-            <SlidersHorizontal size={15} /> Filtros
-          </button>
           <label className="sort-select">
             <ArrowUpDown size={14} />
             <select
@@ -163,53 +153,6 @@ export default function Shop() {
           >
             Ver tudo
           </Button>
-        </div>
-      )}
-      {mobileFilters && (
-        <div
-          id="shop-filters"
-          role="dialog"
-          aria-modal="true"
-          aria-label="Filtros de produtos"
-          className="fixed inset-0 z-40 bg-[#10203a]/30"
-          onClick={() => setMobileFilters(false)}
-        >
-          <div
-            className="absolute bottom-0 left-0 right-0 rounded-t-[28px] bg-[#f8f7f3] p-6"
-            onClick={event => event.stopPropagation()}
-          >
-            <div className="mb-6 flex items-center justify-between">
-              <h2 className="font-display text-xl font-bold">
-                Filtrar por categoria
-              </h2>
-              <button
-                className="icon-button"
-                onClick={() => setMobileFilters(false)}
-                aria-label="Fechar filtros"
-              >
-                <X size={18} />
-              </button>
-            </div>
-            <div className="grid grid-cols-2 gap-2">
-              {categories.map(item => (
-                <button
-                  key={item}
-                  aria-pressed={category === item}
-                  className={
-                    category === item
-                      ? "category-pill-active py-3"
-                      : "category-pill py-3"
-                  }
-                  onClick={() => {
-                    chooseCategory(item);
-                    setMobileFilters(false);
-                  }}
-                >
-                  {item}
-                </button>
-              ))}
-            </div>
-          </div>
         </div>
       )}
     </div>
