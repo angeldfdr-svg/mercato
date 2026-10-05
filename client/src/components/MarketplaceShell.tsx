@@ -2,7 +2,6 @@ import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import {
   ArrowUpRight,
-  Menu,
   Search,
   ShoppingBag,
   UserRound,
@@ -23,7 +22,6 @@ import { toast } from "sonner";
 // The alias path is kept explicit here so auth remains the starter's real Manus OAuth flow.
 export function MarketplaceShell({ children }: { children: React.ReactNode }) {
   const [location, navigate] = useLocation();
-  const [menuOpen, setMenuOpen] = useState(false);
   const [cartOpen, setCartOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [newsletterEmail, setNewsletterEmail] = useState("");
@@ -37,7 +35,6 @@ export function MarketplaceShell({ children }: { children: React.ReactNode }) {
         ? `/shop?query=${encodeURIComponent(search.trim())}`
         : "/shop"
     );
-    setMenuOpen(false);
   };
 
   const openAccount = () => {
@@ -60,17 +57,9 @@ export function MarketplaceShell({ children }: { children: React.ReactNode }) {
       </div>
       <header className="sticky top-0 z-30 border-b border-[#10203a]/10 bg-[#f8f7f3]/95 backdrop-blur-xl">
         <div className="mx-auto flex max-w-[1440px] items-center gap-5 px-5 py-4 lg:px-10">
-          <button
-            className="icon-button lg:hidden"
-            onClick={() => setMenuOpen(!menuOpen)}
-            aria-label="Abrir menu"
-          >
-            {menuOpen ? <X size={20} /> : <Menu size={20} />}
-          </button>
           <Link
             href="/"
             className="group flex shrink-0 items-center gap-2"
-            onClick={() => setMenuOpen(false)}
           >
             <span className="brand-mark">
               M<span>/</span>
@@ -79,37 +68,15 @@ export function MarketplaceShell({ children }: { children: React.ReactNode }) {
               mercato
             </span>
           </Link>
-          <nav className={cn("main-nav", menuOpen && "main-nav-open")}>
+          <nav className="main-nav">
             <Link
               href="/shop"
               className={cn(
                 "nav-link",
                 location === "/shop" && "nav-link-active"
               )}
-              onClick={() => setMenuOpen(false)}
-            >
+              >
               Descobrir
-            </Link>
-            <Link
-              href="/shop?category=Casa"
-              className="nav-link"
-              onClick={() => setMenuOpen(false)}
-            >
-              Casa
-            </Link>
-            <Link
-              href="/shop?category=Tech"
-              className="nav-link"
-              onClick={() => setMenuOpen(false)}
-            >
-              Tech
-            </Link>
-            <Link
-              href="/shop?category=Estilo"
-              className="nav-link"
-              onClick={() => setMenuOpen(false)}
-            >
-              Estilo
             </Link>
           </nav>
           <form
@@ -150,47 +117,7 @@ export function MarketplaceShell({ children }: { children: React.ReactNode }) {
             </button>
           </div>
         </div>
-        {menuOpen && (
-          <div className="border-t border-[#10203a]/10 px-5 py-4 lg:hidden">
-            <form onSubmit={submitSearch} className="search-bar mb-4">
-              <Search size={17} />
-              <input
-                value={search}
-                onChange={event => setSearch(event.target.value)}
-                placeholder="Procurar no Mercato"
-              />
-            </form>
-            <div className="grid max-h-[55vh] grid-cols-2 gap-2 overflow-y-auto">
-              <Link
-                href="/shop"
-                className="mobile-nav-link"
-                onClick={() => setMenuOpen(false)}
-              >
-                Descobrir <ArrowUpRight size={15} />
-              </Link>
-              {categoryMeta.map(category => (
-                <Link
-                  key={category.label}
-                  href={`/shop?category=${encodeURIComponent(category.label)}`}
-                  className="mobile-nav-link"
-                  onClick={() => setMenuOpen(false)}
-                >
-                  {category.label} <ArrowUpRight size={15} />
-                </Link>
-              ))}
-              <button
-                className="mobile-nav-link text-left"
-                onClick={() => {
-                  setMenuOpen(false);
-                  openAccount();
-                }}
-              >
-                {isAuthenticated ? "A minha conta" : "Iniciar sessão"}{" "}
-                <ArrowUpRight size={15} />
-              </button>
-            </div>
-          </div>
-        )}
+
       </header>
       <main>{children}</main>
       <footer className="border-t border-[#10203a]/10 bg-[#f0efe9] px-5 py-12 lg:px-10">
