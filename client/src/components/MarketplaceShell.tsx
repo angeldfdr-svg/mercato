@@ -148,7 +148,7 @@ export function MarketplaceShell({ children }: { children: React.ReactNode }) {
               >
                 Descobrir
               </button>
-              {(["Casa", "Tech", "Estilo", "Desporto"] as const).map(
+              {(["Casa", "Tech", "Estilo"] as const).map(
                 category => {
                   const active =
                     currentPath === "/shop" && currentCategory === category;
