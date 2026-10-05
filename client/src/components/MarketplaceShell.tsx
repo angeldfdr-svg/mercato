@@ -18,6 +18,7 @@ import { startLocalLogin } from "@/const";
 import { categoryMeta, formatPrice } from "@/data/catalog";
 import { useCart } from "@/hooks/useCart";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 // The alias path is kept explicit here so auth remains the starter's real Manus OAuth flow.
 export function MarketplaceShell({ children }: { children: React.ReactNode }) {
@@ -25,6 +26,7 @@ export function MarketplaceShell({ children }: { children: React.ReactNode }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [cartOpen, setCartOpen] = useState(false);
   const [search, setSearch] = useState("");
+  const [newsletterEmail, setNewsletterEmail] = useState("");
   const { user, isAuthenticated, logout } = useAuth();
   const cart = useCart();
 
@@ -41,6 +43,13 @@ export function MarketplaceShell({ children }: { children: React.ReactNode }) {
   const openAccount = () => {
     if (isAuthenticated) navigate("/account");
     else startLocalLogin();
+  };
+
+  const submitNewsletter = (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!newsletterEmail.trim()) return;
+    toast.success("Está na lista. Obrigado por subscrever.");
+    setNewsletterEmail("");
   };
 
   return (
@@ -228,12 +237,19 @@ export function MarketplaceShell({ children }: { children: React.ReactNode }) {
             <p className="mb-3 text-sm leading-6 text-[#536178]">
               Novidades com intenção. Sem ruído.
             </p>
-            <div className="newsletter">
-              <input placeholder="O seu email" type="email" />
-              <button aria-label="Subscrever">
+            <form className="newsletter" onSubmit={submitNewsletter}>
+              <input
+                placeholder="O seu email"
+                type="email"
+                required
+                value={newsletterEmail}
+                onChange={event => setNewsletterEmail(event.target.value)}
+                aria-label="Email para newsletter"
+              />
+              <button type="submit" aria-label="Subscrever">
                 <ArrowRight size={17} />
               </button>
-            </div>
+            </form>
           </div>
         </div>
         <div className="mx-auto mt-12 flex max-w-[1440px] flex-col justify-between gap-3 border-t border-[#10203a]/10 pt-5 text-xs text-[#536178] sm:flex-row">
