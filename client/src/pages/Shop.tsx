@@ -21,12 +21,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 
-const categories: Array<"Todos" | Category> = [
-  "Todos",
-  ...categoryMeta
-    .map(category => category.label)
-    .filter(category => category !== "Outdoor"),
-];
+const categories: Array<"Todos" | Category> = ["Todos", "Outdoor"];
 
 const normalizeSearch = (value: string) =>
   value

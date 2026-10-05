@@ -55,8 +55,7 @@ export default function AuthPage() {
     };
   }, []);
 
-  const canSubmit =
-    emailAvailable === true && (mode !== "recover" || recoveryAvailable);
+  const canSubmit = mode !== "recover" || recoveryAvailable;
   const submit = async (event: React.FormEvent) => {
     event.preventDefault();
     setPending(true);
@@ -116,12 +115,7 @@ export default function AuthPage() {
             A verificar a disponibilidade da conta…
           </p>
         )}
-        {emailAvailable === false && (
-          <p className="auth-provider-message" role="alert">
-            O acesso por email está temporariamente indisponível. Tente mais
-            tarde.
-          </p>
-        )}
+
         {mode === "recover" &&
           emailAvailable === true &&
           !recoveryAvailable && (
