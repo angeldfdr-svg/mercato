@@ -185,6 +185,15 @@ export default defineConfig({
   build: {
     outDir: path.resolve(import.meta.dirname, "dist/public"),
     emptyOutDir: true,
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes("/node_modules/framer-motion/")) return "motion";
+          if (id.includes("/node_modules/@radix-ui/")) return "radix-ui";
+          if (id.includes("/node_modules/lucide-react/")) return "icons";
+        },
+      },
+    },
   },
   server: {
     host: true,
@@ -194,6 +203,7 @@ export default defineConfig({
       ".manus-asia.computer",
       ".manuscomputer.ai",
       ".manusvm.computer",
+      ".e2b.app",
       "localhost",
       "127.0.0.1",
     ],

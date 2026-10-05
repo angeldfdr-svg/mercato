@@ -10,7 +10,10 @@ type CookieCall = {
 
 type AuthenticatedUser = NonNullable<TrpcContext["user"]>;
 
-function createAuthContext(): { ctx: TrpcContext; clearedCookies: CookieCall[] } {
+function createAuthContext(): {
+  ctx: TrpcContext;
+  clearedCookies: CookieCall[];
+} {
   const clearedCookies: CookieCall[] = [];
 
   const user: AuthenticatedUser = {
@@ -30,6 +33,8 @@ function createAuthContext(): { ctx: TrpcContext; clearedCookies: CookieCall[] }
     req: {
       protocol: "https",
       headers: {},
+      get: (header: string) =>
+        header.toLowerCase() === "x-forwarded-proto" ? "https" : undefined,
     } as TrpcContext["req"],
     res: {
       clearCookie: (name: string, options: Record<string, unknown>) => {
@@ -49,9 +54,20 @@ describe("auth.logout", () => {
     const result = await caller.auth.logout();
 
     expect(result).toEqual({ success: true });
-    expect(clearedCookies).toHaveLength(1);
-    expect(clearedCookies[0]?.name).toBe(COOKIE_NAME);
-    expect(clearedCookies[0]?.options).toMatchObject({
+    expect(clearedCookies.map(cookie => cookie.name).sort()).toEqual(
+      [COOKIE_NAME, "mercato_session"].sort()
+    );
+    const optionsByName = new Map(
+      clearedCookies.map(cookie => [cookie.name, cookie.options])
+    );
+    expect(optionsByName.get("mercato_session")).toMatchObject({
+      maxAge: -1,
+      secure: true,
+      sameSite: "lax",
+      httpOnly: true,
+      path: "/",
+    });
+    expect(optionsByName.get(COOKIE_NAME)).toMatchObject({
       maxAge: -1,
       secure: true,
       sameSite: "none",
