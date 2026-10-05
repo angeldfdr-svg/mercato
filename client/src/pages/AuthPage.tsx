@@ -82,12 +82,6 @@ export default function AuthPage() {
           </p>
         </div>
         {mode !== "recover" && (
-          <a className="google-auth-button" href="/api/auth/google/start">
-            <span className="google-g">G</span> Continuar com Google{" "}
-            <ArrowRight size={15} />
-          </a>
-        )}
-        {mode !== "recover" && (
           <div className="auth-divider">
             <span>ou use o email</span>
           </div>

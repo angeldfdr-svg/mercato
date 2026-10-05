@@ -17,7 +17,6 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { startLocalLogin } from "@/const";
 import { categoryMeta, formatPrice } from "@/data/catalog";
 import { useCart } from "@/hooks/useCart";
-import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { useFavorites } from "@/contexts/FavoritesContext";
 
@@ -71,17 +70,6 @@ export function MarketplaceShell({ children }: { children: React.ReactNode }) {
               mercato
             </span>
           </Link>
-          <nav className="main-nav">
-            <Link
-              href="/shop"
-              className={cn(
-                "nav-link",
-                location === "/shop" && "nav-link-active"
-              )}
-              >
-              Descobrir
-            </Link>
-          </nav>
           <form
             onSubmit={submitSearch}
             className="search-bar ml-auto hidden max-w-[310px] flex-1 md:flex"
