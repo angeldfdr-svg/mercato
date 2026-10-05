@@ -18,21 +18,49 @@ const SESSION_DAYS = 30;
 const RESET_MINUTES = 30;
 
 function supabaseConfig() {
-  const url = process.env.SUPABASE_URL?.trim();
-  const key = (process.env.SUPABASE_PUBLISHABLE_KEY ?? process.env.SUPABASE_ANON_KEY)?.trim();
+  const url = (process.env.SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL)?.trim();
+  const key = (
+    process.env.SUPABASE_PUBLISHABLE_KEY ??
+    process.env.SUPABASE_ANON_KEY ??
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ??
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ??
+    process.env.SUPABASE_SECRET_KEY ??
+    process.env.SUPABASE_SERVICE_ROLE_KEY
+  )?.trim();
   if (!url || !key) throw new Error("Supabase não está configurado");
   return { url, key };
+}
+
+export class SupabaseAuthError extends Error {
+  constructor(
+    message: string,
+    public readonly status: number,
+    public readonly code?: string,
+  ) {
+    super(message);
+    this.name = "SupabaseAuthError";
+  }
 }
 
 export async function supabaseAuthRequest(path: string, body: Record<string, unknown>) {
   const { url, key } = supabaseConfig();
   const response = await fetch(`${url}/auth/v1${path}`, {
     method: "POST",
-    headers: { apikey: key, authorization: `Bearer ${key}`, "content-type": "application/json" },
+    headers: {
+      apikey: key,
+      authorization: `Bearer ${key}`,
+      "content-type": "application/json",
+    },
     body: JSON.stringify(body),
   });
   const data = await response.json().catch(() => ({}));
-  if (!response.ok) throw new Error(data.msg ?? data.error_description ?? data.message ?? "Não foi possível autenticar");
+  if (!response.ok) {
+    throw new SupabaseAuthError(
+      data.msg ?? data.error_description ?? data.message ?? "Não foi possível autenticar",
+      response.status,
+      data.error_code ?? data.code,
+    );
+  }
   return data as { access_token?: string; user?: { id: string; email?: string; user_metadata?: { name?: string } } };
 }
 

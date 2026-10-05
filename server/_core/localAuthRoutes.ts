@@ -8,6 +8,7 @@ import {
   sendPasswordResetEmail,
   setSupabaseSession,
   supabaseAuthRequest,
+  SupabaseAuthError,
   SUPABASE_COOKIE,
 } from "../localAuth";
 import { authRateLimits } from "./rateLimits";
@@ -36,7 +37,12 @@ function validEmail(email: string) {
 export function getAuthProviderStatus() {
   const supabase = Boolean(
     process.env.SUPABASE_URL?.trim() &&
-      (process.env.SUPABASE_PUBLISHABLE_KEY?.trim() || process.env.SUPABASE_ANON_KEY?.trim())
+      (process.env.SUPABASE_PUBLISHABLE_KEY?.trim() ||
+        process.env.SUPABASE_ANON_KEY?.trim() ||
+        process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY?.trim() ||
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim() ||
+        process.env.SUPABASE_SECRET_KEY?.trim() ||
+        process.env.SUPABASE_SERVICE_ROLE_KEY?.trim())
   );
   return {
     email: supabase,
@@ -81,6 +87,17 @@ export function registerLocalAuthRoutes(app: Express) {
       return res.status(201).json({ user: data.user ?? null, needsConfirmation: !data.access_token });
     } catch (error) {
       console.error("[Auth] Register failed", error);
+      if (error instanceof SupabaseAuthError) {
+        const message =
+          error.code === "user_already_exists"
+            ? "Já existe uma conta com este email."
+            : error.status === 401 || error.status === 403
+              ? "O pedido de criação de conta não foi autorizado pelo Supabase. Verifique se o provider Email está ativo."
+              : error.status === 422
+                ? error.message
+                : "Não foi possível criar a conta";
+        return res.status(error.status >= 400 && error.status < 500 ? error.status : 500).json({ error: message });
+      }
       return res.status(500).json({ error: "Não foi possível criar a conta" });
     }
   });
