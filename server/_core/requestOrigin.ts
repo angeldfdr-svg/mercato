@@ -93,8 +93,17 @@ export function isSameOriginMutation(
     // browser's Fetch Metadata header still proves the mutation came from the
     // current same-origin document, so accept that verified case before
     // comparing proxy hostnames.
-    if (req.get("sec-fetch-site") === "same-origin") return true;
+    const fetchSite = req.get("sec-fetch-site");
+    if (fetchSite === "same-origin" || fetchSite === "same-site") return true;
     const suppliedOrigin = parseOrigin(origin, "Origin do pedido");
+    const referer = req.get("referer");
+    if (referer) {
+      try {
+        if (parseOrigin(referer, "Referer do pedido") === suppliedOrigin) return true;
+      } catch {
+        return false;
+      }
+    }
     const configuredOrigins = configuredOriginKeys
       .map(key => process.env[key]?.trim())
       .filter((value): value is string => Boolean(value))

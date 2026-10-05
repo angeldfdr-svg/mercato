@@ -12,6 +12,7 @@ const Shop = lazy(() => import("./pages/Shop"));
 const Product = lazy(() => import("./pages/Product"));
 const Account = lazy(() => import("./pages/Account"));
 const Cart = lazy(() => import("./pages/Cart"));
+  const Favorites = lazy(() => import("./pages/Favorites"));
 const SellerInbox = lazy(() => import("./pages/SellerInbox"));
 const AuthPage = lazy(() => import("./pages/AuthPage"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
@@ -38,6 +39,7 @@ function Router() {
           <Route path="/product/:slug" component={Product} />
           <Route path="/account" component={Account} />
           <Route path="/cart" component={Cart} />
+          <Route path="/favorites" component={Favorites} />
           <Route path="/seller/inbox" component={SellerInbox} />
           <Route path="/login" component={AuthPage} />
           <Route path="/reset-password" component={ResetPassword} />

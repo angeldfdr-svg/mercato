@@ -188,7 +188,7 @@ export function MarketplaceShell({ children }: { children: React.ReactNode }) {
               <button
                 type="button"
                 className="icon-button hidden sm:inline-flex"
-                onClick={() => goTo("/shop")}
+                onClick={() => goTo("/favorites")}
                 aria-label="Abrir favoritos"
               >
                 <Heart size={19} />

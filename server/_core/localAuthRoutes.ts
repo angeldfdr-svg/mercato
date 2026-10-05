@@ -129,6 +129,16 @@ export function registerLocalAuthRoutes(app: Express) {
       return res.json({ user: data.user ?? null });
     } catch (error) {
       console.error("[Auth] Login failed", error);
+      if (error instanceof SupabaseAuthError) {
+        return res.status(error.status >= 400 && error.status < 500 ? error.status : 500).json({
+          error:
+            error.status === 401
+              ? "Email ou password incorretos, ou a conta ainda não foi confirmada."
+              : error.status === 403
+                ? "O acesso por email está bloqueado no Supabase. Ative o provider Email."
+                : "Não foi possível iniciar sessão",
+        });
+      }
       return res.status(500).json({ error: "Não foi possível iniciar sessão" });
     }
   });
