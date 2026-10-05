@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useLocation } from "wouter";
 import { ArrowUpDown, Search, X } from "lucide-react";
 import { categoryMeta, products, type Category } from "@/data/catalog";
@@ -26,6 +26,16 @@ export default function Shop() {
     : "Todos";
   const [selectedCategory, setSelectedCategory] = useState<"Todos" | Category>(initialCategory);
   const category = selectedCategory;
+
+  useEffect(() => {
+    const nextParams = new URLSearchParams(location.split("?")[1] ?? "");
+    const nextCategory = nextParams.get("category") ?? "Todos";
+    setSelectedCategory(
+      categories.includes(nextCategory as Category | "Todos")
+        ? (nextCategory as Category | "Todos")
+        : "Todos"
+    );
+  }, [location]);
   const [sort, setSort] = useState("featured");
 
   const filtered = useMemo(() => {
@@ -63,6 +73,13 @@ export default function Shop() {
     nextParams.delete("query");
     navigate(nextParams.size ? `/shop?${nextParams.toString()}` : "/shop");
   };
+
+  const clearFilters = () => {
+    setSelectedCategory("Todos");
+    navigate(query ? `/shop?query=${encodeURIComponent(query)}` : "/shop");
+  };
+
+  const hasActiveFilters = category !== "Todos" || Boolean(query);
 
   return (
     <div className="mx-auto max-w-[1440px] px-5 pb-24 pt-10 lg:px-10 lg:pt-16">
@@ -125,9 +142,9 @@ export default function Shop() {
             </>
           )}
         </p>
-        {query && (
-          <button className="text-link" onClick={clearSearch}>
-            Limpar pesquisa <X size={14} />
+        {hasActiveFilters && (
+          <button className="text-link" onClick={clearFilters}>
+            Limpar filtros <X size={14} />
           </button>
         )}
       </div>
