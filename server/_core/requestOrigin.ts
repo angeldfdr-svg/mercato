@@ -86,14 +86,27 @@ export function isSameOriginMutation(
   req: OriginRequest & Pick<Request, "method">
 ) {
   const origin = req.get("origin");
-  const host = req.get("host")?.trim();
-  if (!origin || !host) return false;
+  if (!origin) return false;
   try {
-    const expectedOrigin = parseOrigin(
-      `${req.protocol.toLowerCase()}://${host}`,
-      "Host do pedido"
-    );
-    return parseOrigin(origin, "Origin do pedido") === expectedOrigin;
+    const suppliedOrigin = parseOrigin(origin, "Origin do pedido");
+    const configuredOrigins = configuredOriginKeys
+      .map(key => process.env[key]?.trim())
+      .filter((value): value is string => Boolean(value))
+      .map((value, index) => parseOrigin(value, configuredOriginKeys[index]));
+
+    if (configuredOrigins.includes(suppliedOrigin)) return true;
+
+    // Reverse proxies can expose a public host while Express sees an internal one.
+    const forwardedHost = req.get("x-forwarded-host")?.split(",")[0]?.trim();
+    const host = forwardedHost || req.get("host")?.trim();
+    if (!host) return false;
+    const forwardedProtocol = req
+      .get("x-forwarded-proto")
+      ?.split(",")[0]
+      ?.trim()
+      .toLowerCase();
+    const protocol = forwardedProtocol || req.protocol.toLowerCase();
+    return suppliedOrigin === parseOrigin(`${protocol}://${host}`, "Host do pedido");
   } catch {
     return false;
   }
