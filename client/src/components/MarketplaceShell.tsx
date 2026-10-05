@@ -10,6 +10,7 @@ import {
   Plus,
   Minus,
   ArrowRight,
+  Heart,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/_core/hooks/useAuth";
@@ -18,6 +19,7 @@ import { categoryMeta, formatPrice } from "@/data/catalog";
 import { useCart } from "@/hooks/useCart";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { useFavorites } from "@/contexts/FavoritesContext";
 
 // The alias path is kept explicit here so auth remains the starter's real Manus OAuth flow.
 export function MarketplaceShell({ children }: { children: React.ReactNode }) {
@@ -27,6 +29,7 @@ export function MarketplaceShell({ children }: { children: React.ReactNode }) {
   const [newsletterEmail, setNewsletterEmail] = useState("");
   const { user, isAuthenticated, logout } = useAuth();
   const cart = useCart();
+  const { count: favoriteCount } = useFavorites();
 
   const submitSearch = (event: React.FormEvent) => {
     event.preventDefault();
@@ -108,6 +111,14 @@ export function MarketplaceShell({ children }: { children: React.ReactNode }) {
               <UserRound size={19} />
             </button>
             <button
+              className="icon-button"
+              onClick={() => navigate("/favorites")}
+              aria-label="Abrir favoritos"
+            >
+              <Heart size={19} />
+              {favoriteCount > 0 && <span className="favorite-count">{favoriteCount}</span>}
+            </button>
+            <button
               className="cart-button"
               onClick={() => setCartOpen(true)}
               aria-label="Abrir carrinho"
@@ -153,10 +164,10 @@ export function MarketplaceShell({ children }: { children: React.ReactNode }) {
           <div>
             <p className="footer-kicker">Ajuda</p>
             <div className="footer-links">
-              <span>Envios e trocas</span>
-              <span>Estado da encomenda</span>
-              <span>Guia de tamanhos</span>
-              <span>Contacto</span>
+<Link href="/shop">Envios e trocas</Link>
+                <Link href="/account">Estado da encomenda</Link>
+                <Link href="/shop">Guia de tamanhos</Link>
+                <a href="mailto:ola@mercato.pt">Contacto</a>
             </div>
           </div>
           <div>

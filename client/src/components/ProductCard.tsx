@@ -4,6 +4,7 @@ import { Link } from "wouter";
 import { Product, formatPrice } from "@/data/catalog";
 import { useCart } from "@/hooks/useCart";
 import { cn } from "@/lib/utils";
+import { useFavorites } from "@/contexts/FavoritesContext";
 
 export function ProductCard({
   product,
@@ -12,9 +13,10 @@ export function ProductCard({
   product: Product;
   compact?: boolean;
 }) {
-  const [saved, setSaved] = useState(false);
   const [added, setAdded] = useState(false);
   const cart = useCart();
+  const { isFavorite, toggleFavorite } = useFavorites();
+  const saved = isFavorite(product.id);
   const add = () => {
     cart.addItem(product);
     setAdded(true);
@@ -43,7 +45,7 @@ export function ProductCard({
         )}
         <button
           className={cn("save-button", saved && "save-button-active")}
-          onClick={() => setSaved(!saved)}
+          onClick={() => toggleFavorite(product.id)}
           aria-label={saved ? "Remover dos favoritos" : "Guardar produto"}
         >
           <Heart size={17} fill={saved ? "currentColor" : "none"} />
