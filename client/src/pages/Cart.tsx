@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { formatPrice } from "@/data/catalog";
 import { useCart } from "@/hooks/useCart";
 import { useAuth } from "@/_core/hooks/useAuth";
-import { startLogin } from "@/const";
+import { startLocalLogin } from "@/const";
 import { trpc } from "@/lib/trpc";
 
 export default function Cart() {
@@ -22,7 +22,7 @@ export default function Cart() {
   }, []);
 
   const beginStripeCheckout = async () => {
-    if (!isAuthenticated) return startLogin();
+    if (!isAuthenticated) return startLocalLogin();
     const paymentWindow = window.open("about:blank", "_blank", "noopener,noreferrer");
     try {
       const result = await checkoutMutation.mutateAsync({ items: cart.items.map(({ product, quantity }) => ({ productId: product.id, quantity })) });

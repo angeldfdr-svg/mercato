@@ -1,6 +1,6 @@
 import { and, desc, eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { conversations, InsertUser, messages, orders, processedStripeEvents, users } from "../drizzle/schema";
+import { authSessions, conversations, InsertUser, messages, orders, passwordResetTokens, processedStripeEvents, users } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -161,4 +161,88 @@ export async function listOrdersForUser(userId: number) {
   const db = await getDb();
   if (!db) return [];
   return db.select().from(orders).where(eq(orders.userId, userId)).orderBy(desc(orders.createdAt));
+}
+
+export async function getUserById(id: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(users).where(eq(users.id, id)).limit(1);
+  return result[0];
+}
+
+export async function getUserByEmail(email: string) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(users).where(eq(users.email, email.toLowerCase())).limit(1);
+  return result[0];
+}
+
+export async function findOrCreateGoogleUser(input: { googleId: string; email: string; name: string }) {
+  const db = await getDb();
+  if (!db) throw new Error("Database is not available");
+  const byGoogle = await db.select().from(users).where(eq(users.googleId, input.googleId)).limit(1);
+  if (byGoogle[0]) {
+    await db.update(users).set({ name: input.name, email: input.email.toLowerCase(), loginMethod: "google", lastSignedIn: new Date() }).where(eq(users.id, byGoogle[0].id));
+    return (await getUserById(byGoogle[0].id))!;
+  }
+  const byEmail = await getUserByEmail(input.email);
+  if (byEmail) {
+    await db.update(users).set({ googleId: input.googleId, name: input.name, loginMethod: "google", lastSignedIn: new Date() }).where(eq(users.id, byEmail.id));
+    return (await getUserById(byEmail.id))!;
+  }
+  const openId = `google_${input.googleId}`.slice(0, 64);
+  await db.insert(users).values({ openId, googleId: input.googleId, email: input.email.toLowerCase(), name: input.name, loginMethod: "google", lastSignedIn: new Date() });
+  const created = await getUserByEmail(input.email);
+  if (!created) throw new Error("Google user was not created");
+  return created;
+}
+
+export async function createLocalUser(input: { openId: string; email: string; name: string; passwordHash: string }) {
+  const db = await getDb();
+  if (!db) throw new Error("Database is not available");
+  await db.insert(users).values({ ...input, email: input.email.toLowerCase(), loginMethod: "password", lastSignedIn: new Date() });
+  return getUserByEmail(input.email);
+}
+
+export async function createAuthSession(input: { userId: number; tokenHash: string; expiresAt: Date }) {
+  const db = await getDb();
+  if (!db) throw new Error("Database is not available");
+  await db.insert(authSessions).values(input);
+}
+
+export async function getUserBySessionToken(tokenHash: string) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select({ user: users, session: authSessions }).from(authSessions).innerJoin(users, eq(authSessions.userId, users.id)).where(eq(authSessions.tokenHash, tokenHash)).limit(1);
+  if (!result[0] || result[0].session.expiresAt.getTime() <= Date.now()) return undefined;
+  return result[0].user;
+}
+
+export async function deleteAuthSession(tokenHash: string) {
+  const db = await getDb();
+  if (!db) return;
+  await db.delete(authSessions).where(eq(authSessions.tokenHash, tokenHash));
+}
+
+export async function createPasswordResetToken(input: { userId: number; tokenHash: string; expiresAt: Date }) {
+  const db = await getDb();
+  if (!db) throw new Error("Database is not available");
+  await db.delete(passwordResetTokens).where(eq(passwordResetTokens.userId, input.userId));
+  await db.insert(passwordResetTokens).values(input);
+}
+
+export async function getPasswordResetToken(tokenHash: string) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select({ token: passwordResetTokens, user: users }).from(passwordResetTokens).innerJoin(users, eq(passwordResetTokens.userId, users.id)).where(eq(passwordResetTokens.tokenHash, tokenHash)).limit(1);
+  const row = result[0];
+  if (!row || row.token.usedAt || row.token.expiresAt.getTime() <= Date.now()) return undefined;
+  return row;
+}
+
+export async function consumePasswordResetToken(id: number, userId: number, passwordHash: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Database is not available");
+  await db.update(users).set({ passwordHash, loginMethod: "password", lastSignedIn: new Date() }).where(eq(users.id, userId));
+  await db.update(passwordResetTokens).set({ usedAt: new Date() }).where(eq(passwordResetTokens.id, id));
 }

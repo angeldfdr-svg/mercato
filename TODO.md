@@ -12,3 +12,8 @@
 - [x] **Estados e feedback:** As interações principais têm estados de loading, vazio, erro ou sucesso quando aplicável, incluindo pesquisa sem resultados, carrinho vazio, favoritos, checkout cancelado e confirmação pendente via webhook.
 - [x] **Rotas e continuidade:** As páginas `/`, `/shop`, `/product/:slug`, `/account`, `/cart`, `/seller/inbox` e `/404` estão acessíveis e declaradas em `client/public/manus-routes.json`, com `/api/health` preservado.
 - [ ] **PayPal opcional:** PayPal permanece como provider futuro; para o ativar será necessário escolher a política de pagamentos multi-provider e fornecer/configurar as credenciais PayPal através do fluxo protegido.
+
+- [x] **Autenticação própria no código:** O projeto inclui registo e login por email/password com hash scrypt, sessões próprias persistidas, logout e compatibilidade de fallback com o login Manus existente.
+- [x] **Google OAuth no código:** Existem endpoints de início/callback, state protegido por cookie, validação de email verificado e ligação de contas Google existentes por email.
+- [x] **Recuperação de password no código:** Existe pedido de reset com resposta anti-enumeração, token único com expiração de 30 minutos, email Resend e definição de nova password.
+- [ ] **Ativação de Google e recuperação por email:** É necessário autorizar no cartão protegido os valores `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `RESEND_API_KEY` e `AUTH_EMAIL_FROM`; o cartão foi cancelado nesta sessão e não foi reaberto.

@@ -11,9 +11,11 @@ import Product from "./pages/Product";
 import Account from "./pages/Account";
 import Cart from "./pages/Cart";
 import SellerInbox from "./pages/SellerInbox";
+import AuthPage from "./pages/AuthPage";
+import ResetPassword from "./pages/ResetPassword";
 
 function Router() {
-  return <MarketplaceShell><Switch><Route path="/" component={Home} /><Route path="/shop" component={Shop} /><Route path="/product/:slug" component={Product} /><Route path="/account" component={Account} /><Route path="/cart" component={Cart} /><Route path="/seller/inbox" component={SellerInbox} /><Route path="/404" component={NotFound} /><Route component={NotFound} /></Switch></MarketplaceShell>;
+  return <MarketplaceShell><Switch><Route path="/" component={Home} /><Route path="/shop" component={Shop} /><Route path="/product/:slug" component={Product} /><Route path="/account" component={Account} /><Route path="/cart" component={Cart} /><Route path="/seller/inbox" component={SellerInbox} /><Route path="/login" component={AuthPage} /><Route path="/reset-password" component={ResetPassword} /><Route path="/404" component={NotFound} /><Route component={NotFound} /></Switch></MarketplaceShell>;
 }
 
 function App() {

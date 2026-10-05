@@ -30,3 +30,9 @@ export const startLogin = () => {
 
   window.location.href = url.toString();
 };
+
+export const startLocalLogin = () => {
+  window.location.href = "/login";
+};
+
+export const startManusLogin = startLogin;

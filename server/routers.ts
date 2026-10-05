@@ -6,6 +6,7 @@ import { createCheckoutSession } from "./stripe";
 import * as db from "./db";
 import { emitChatMessage } from "./realtime";
 import { z } from "zod";
+import { destroyLocalSession } from "./localAuth";
 
 const conversationInput = z.object({
   productSlug: z.string().min(1).max(128),
@@ -18,7 +19,8 @@ export const appRouter = router({
   system: systemRouter,
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),
-    logout: publicProcedure.mutation(({ ctx }) => {
+    logout: publicProcedure.mutation(async ({ ctx }) => {
+      await destroyLocalSession(ctx.req, ctx.res);
       const cookieOptions = getSessionCookieOptions(ctx.req);
       ctx.res.clearCookie(COOKIE_NAME, { ...cookieOptions, maxAge: -1 });
       return { success: true } as const;

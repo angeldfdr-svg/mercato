@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { MessageCircle, Send, Store, UserRound, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { startLogin } from "@/const";
+import { startLocalLogin } from "@/const";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
 import { cn } from "@/lib/utils";
@@ -40,7 +40,7 @@ export function ChatPanel({ productSlug, productName }: { productSlug: string; p
   }, [conversationId]);
 
   const startConversation = () => {
-    if (!isAuthenticated) return startLogin();
+    if (!isAuthenticated) return startLocalLogin();
     setOpen(true);
     if (!conversationId) openMutation.mutate({ productSlug, productName });
   };

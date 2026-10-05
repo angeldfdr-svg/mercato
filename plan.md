@@ -42,3 +42,9 @@ O Mercato é um marketplace dinâmico, profissional e interativo, com descoberta
 - `server/routers.ts` / `server/db.ts` — tRPC, persistência e permissões.
 - `drizzle/schema.ts` — utilizadores, conversas, mensagens, encomendas e eventos processados.
 - `client/src/index.css` — tokens, responsividade e estilos de interação.
+
+## Autenticação própria — implementação
+
+A autenticação própria usa contas locais com password derivada por `scrypt`, sessões aleatórias persistidas em `authSessions`, Google OAuth 2.0 com state/nonce em cookie e recuperação por token de utilização única em `passwordResetTokens`. Os emails de recuperação são enviados pelo Resend. As rotas públicas são `/login`, `/reset-password`, `/api/auth/google/start`, `/api/auth/google/callback`, `/api/auth/register`, `/api/auth/login`, `/api/auth/request-password-reset` e `/api/auth/reset-password`.
+
+A implementação está no código e passa typecheck/build. A ativação externa ficou pendente porque o cartão seguro de credenciais foi cancelado: faltam `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `RESEND_API_KEY` e `AUTH_EMAIL_FROM`. Sem esses valores, o endpoint Google responde controladamente que não está configurado e a recuperação de password não envia email. As credenciais nunca devem ser colocadas no código ou enviadas em chat; devem ser fornecidas pelo cartão protegido do Webdev quando o utilizador autorizar.

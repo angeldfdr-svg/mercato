@@ -9,6 +9,7 @@ import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
 import { handleStripeWebhook } from "../stripe";
 import { handleChatStream } from "../chatStream";
+import { registerLocalAuthRoutes } from "./localAuthRoutes";
 
 async function startServer() {
   const app = express();
@@ -23,6 +24,7 @@ async function startServer() {
     res.set("Cache-Control", "no-store").type("application/javascript").send(publicPlatformScript());
   });
   app.get("/api/chat/stream", handleChatStream);
+  registerLocalAuthRoutes(app);
   registerOAuthRoutes(app);
   // tRPC API
   app.use(

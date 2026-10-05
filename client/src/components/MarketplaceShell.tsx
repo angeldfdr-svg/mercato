@@ -3,7 +3,7 @@ import { Link, useLocation } from "wouter";
 import { ArrowUpRight, Menu, Search, ShoppingBag, UserRound, X, Trash2, Plus, Minus, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/_core/hooks/useAuth";
-import { startLogin } from "@/const";
+import { startLocalLogin } from "@/const";
 import { formatPrice } from "@/data/catalog";
 import { useCart } from "@/hooks/useCart";
 import { cn } from "@/lib/utils";
@@ -25,7 +25,7 @@ export function MarketplaceShell({ children }: { children: React.ReactNode }) {
 
   const openAccount = () => {
     if (isAuthenticated) navigate("/account");
-    else startLogin();
+    else startLocalLogin();
   };
 
   return (
