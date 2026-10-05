@@ -110,7 +110,7 @@ export const products: Product[] = [
     details: ["Cortiça natural", "Base antiderrapante", "Feito em Portugal"],
     variants: ["Cortiça", "Cobalto"],
     color: "Cortiça",
-    image: "/manus-storage/async-images/OSM00crb9FU0rI5qfsVz6H/image-3.webp",
+    image: "/manus-storage/async-images/AXvKbhn2F08OPxqVZEWVIm/image-1.webp",
     accent: "#d7f64a",
   },
   {
@@ -127,7 +127,7 @@ export const products: Product[] = [
     details: ["Algodão 100%", "Lavável à máquina", "Cinto ajustável"],
     variants: ["Marfim", "Rosa névoa", "Cobalto"],
     color: "Marfim",
-    image: "/manus-storage/async-images/OSM00crb9FU0rI5qfsVz6H/image-3.webp",
+    image: "/manus-storage/async-images/AXvKbhn2F08OPxqVZEWVIm/image-2.webp",
     accent: "#ffc7b8",
   },
 ];

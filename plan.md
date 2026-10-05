@@ -1,41 +1,44 @@
 # Plano — Mercato Marketplace
 
-## Produto
+## Produto e decisão de integração
 
-O Mercato será um marketplace dinâmico, profissional e interativo, com descoberta de produtos, navegação por categorias, pesquisa, filtros, detalhe de produto, carrinho, checkout e área de conta. O login usa o fluxo Manus OAuth já fornecido pelo starter. A integração Shopify foi escolhida no Blueprint, mas a ativação ficou bloqueada por `owner_unavailable`; por isso a primeira versão usa catálogo e estado de compra próprios, com uma camada de dados preparada para a integração futura.
+O Mercato é um marketplace dinâmico, profissional e interativo, com descoberta de produtos, navegação por categorias, pesquisa, filtros, detalhe de produto, carrinho, checkout, área de conta, pagamentos e conversas entre compradores e vendedores. O login usa Manus OAuth. A gateway escolhida para a primeira integração real é **Stripe Checkout**, porque a plataforma fornece as credenciais de teste, webhook assinado e fluxo hospedado seguro. PayPal pode ser acrescentado depois como segundo provider, mas não é ativado nesta entrega.
 
 ## Direção visual
 
 - **Movimento:** editorial commerce contemporâneo, entre uma revista de design e uma loja digital premium.
-- **Princípios:** hierarquia tipográfica forte, muito espaço de respiro, contraste alto com cor proprietária, e interações curtas que confirmam cada ação.
-- **Filosofia de cor:** fundo marfim para reduzir ruído e criar calor; tinta azul-noite para confiança e legibilidade; azul cobalto como cor de marca proprietária; verde ácido apenas como sinal de descoberta/novidade; coral para estados de atenção.
-- **Paradigma de layout:** composição assimétrica com hero dividido, trilho horizontal de categorias, grelha de produtos com cartões de alturas controladas e drawers laterais para carrinho/login, evitando uma página centralizada genérica.
-- **Elementos assinatura:** wordmark “M/” construído com duas barras inclinadas; etiquetas de categoria em cápsula; marcador cobalto vertical em preços e estados de stock.
-- **Interação:** cada ação importante tem feedback imediato (contador do carrinho, toast, drawer, estado vazio); pesquisa e filtros são client-side e preservam o contexto do utilizador.
-- **Animação:** entrada suave de blocos com `fade-up`, hover de produto com zoom leve e deslocamento do preço, drawer com `slide-in`, sem animações contínuas ou decorativas que prejudiquem leitura.
-- **Tipografia:** títulos em `Space Grotesk`/`Arial` com peso 700 e tracking negativo; corpo em `DM Sans`/`Arial` com 15–16px; labels em caixa alta com tracking amplo.
-- **Essência de marca:** “Uma curadoria viva para comprar melhor, descobrir mais e voltar sempre.” Personalidade: criteriosa, calorosa, ágil.
-- **Voz:** headlines diretas e convidativas; CTAs com verbo e benefício. Exemplos: “Encontre o que fica.” / “Adicionar ao saco”.
-- **Wordmark/logo:** monograma `M/` dentro de um quadrado cobalto, acompanhado do nome Mercato em caixa baixa.
-- **Cor proprietária:** azul cobalto `#155EEF`.
+- **Princípios:** hierarquia tipográfica forte, espaço de respiro, contraste alto com cor proprietária e feedback imediato.
+- **Filosofia de cor:** marfim para calor, azul-noite para confiança, cobalto como cor própria, verde ácido para descoberta e coral para atenção.
+- **Paradigma de layout:** hero assimétrico, trilho horizontal de categorias, grelha editorial de produtos e painéis laterais para carrinho/chat.
+- **Elementos assinatura:** monograma `M/`, etiquetas em cápsula e marcador cobalto em preços/stock.
+- **Interação/animação:** toast, contador, drawer e estados vazios; fade-up, zoom ligeiro e slide-in sem movimento decorativo excessivo.
+- **Tipografia:** Space Grotesk/Arial para títulos; DM Sans/Arial para corpo; labels em caixa alta com tracking amplo.
+- **Essência:** “Uma curadoria viva para comprar melhor, descobrir mais e voltar sempre.” Personalidade: criteriosa, calorosa, ágil.
+- **Voz:** headlines diretas e CTAs com benefício — “Encontre o que fica.” / “Adicionar ao saco”.
+- **Marca:** monograma `M/` em quadrado cobalto; cor proprietária `#155EEF`.
 
-## Implementação
+## Implementação entregue
 
-- **Frontend:** React + Wouter + Tailwind v4, usando componentes UI existentes apenas onde ajudam a acessibilidade; uma página shell responsiva com estados de home, catálogo, detalhe de produto, carrinho e conta.
-- **Dados:** catálogo demo local tipado para a primeira experiência, com filtros, ordenação, pesquisa, favoritos e carrinho persistido em `localStorage`. O backend mantém o router tRPC extensível para produtos/encomendas quando a integração comercial estiver disponível.
-- **Autenticação:** reaproveitar `useAuth`, `startLogin` e o fluxo OAuth do starter; mostrar login real via Manus OAuth, sem utilizador fictício ou bypass de Preview.
-- **Persistência:** acrescentar schema Drizzle para favoritos/encomendas apenas se necessário; na primeira entrega, a experiência de carrinho é client-side e o login fica ligado ao backend fornecido.
-- **Rotas:** `/`, `/shop`, `/product/:slug`, `/account`, `/cart`, `/404`; rotas declaradas também em `public/manus-routes.json`.
-- **Servidor:** manter `/api/health`, OAuth e tRPC; iniciar com `pnpm dev` na porta 3000.
-- **Metadados:** adicionar `app.config.ts` com logo HTTPS durável quando houver um ativo adequado; usar favicon inline/textual na UI até existir URL de logo externa.
+- **Frontend:** React + Wouter + Tailwind v4, shell responsivo, home, catálogo, detalhe, carrinho, conta e inbox.
+- **Catálogo/imagens:** catálogo tipado local com uma imagem editorial por produto, variantes, preço, pesquisa, filtros, favoritos e carrinho persistido em `localStorage`.
+- **Pagamento:** Checkout Sessions Stripe criadas apenas no servidor a partir de IDs/preços validados; `allow_promotion_codes`, email/identidade do comprador, morada recolhida no Stripe, URLs de retorno e abertura numa nova aba.
+- **Webhook/persistência:** `/api/stripe/webhook` preserva o body raw, valida assinatura, deduplica eventos e grava encomendas pagas; a conta mostra histórico de pagamentos.
+- **Chat:** conversas por produto guardadas em MySQL/Drizzle, procedimentos tRPC protegidos, stream SSE autenticado com fallback de polling e inbox de vendedor para utilizadores admin em `/seller/inbox`.
+- **Autenticação:** `useAuth`, `startLogin` e OAuth real Manus; compradores precisam de sessão para checkout e chat.
+- **Rotas:** `/`, `/shop`, `/product/:slug`, `/account`, `/cart`, `/seller/inbox`, `/404`, declaradas em `client/public/manus-routes.json`.
+- **Servidor:** `/api/health`, OAuth, tRPC, webhook Stripe e stream de chat; runtime na porta 3000.
+- **Metadados:** `app.config.ts` com logo HTTPS durável.
 
 ## Estrutura principal
 
-- `client/src/App.tsx` — shell de rotas e providers.
-- `client/src/pages/Home.tsx` — composição principal e estados de navegação.
-- `client/src/data/catalog.ts` — produtos, categorias e recomendações tipadas.
-- `client/src/hooks/useCart.ts` — carrinho persistido e ações de quantidade.
-- `client/src/index.css` — tokens de marca, responsividade e animações.
-- `server/routers.ts` — procedimentos auth e futuros dados de negócio.
-- `drizzle/schema.ts` — utilizadores fornecidos e futuras tabelas de domínio.
-- `public/manus-routes.json` — manifest completo de páginas do website.
+- `client/src/App.tsx` — shell de rotas.
+- `client/src/pages/Cart.tsx` — carrinho e Stripe Checkout.
+- `client/src/components/ChatPanel.tsx` — chat do comprador.
+- `client/src/pages/SellerInbox.tsx` — resposta do vendedor/admin.
+- `client/src/data/catalog.ts` — produtos e imagens.
+- `shared/products.ts` — preços validados no servidor.
+- `server/stripe.ts` — sessão Stripe e webhook assinado.
+- `server/chatStream.ts` / `server/realtime.ts` — SSE e eventos do chat.
+- `server/routers.ts` / `server/db.ts` — tRPC, persistência e permissões.
+- `drizzle/schema.ts` — utilizadores, conversas, mensagens, encomendas e eventos processados.
+- `client/src/index.css` — tokens, responsividade e estilos de interação.

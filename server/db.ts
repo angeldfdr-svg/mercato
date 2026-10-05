@@ -1,6 +1,6 @@
-import { eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users } from "../drizzle/schema";
+import { conversations, InsertUser, messages, orders, processedStripeEvents, users } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -88,4 +88,77 @@ export async function getUserByOpenId(openId: string) {
   return result.length > 0 ? result[0] : undefined;
 }
 
-// TODO: add feature queries here as your schema grows.
+export async function getConversationForBuyer(buyerId: number, productSlug: string) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(conversations).where(and(eq(conversations.buyerId, buyerId), eq(conversations.productSlug, productSlug))).limit(1);
+  return result[0];
+}
+
+export async function getConversationById(id: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(conversations).where(eq(conversations.id, id)).limit(1);
+  return result[0];
+}
+
+export async function createConversation(input: { buyerId: number; productSlug: string; productName: string }) {
+  const db = await getDb();
+  if (!db) throw new Error("Database is not available");
+  await db.insert(conversations).values(input);
+  return getConversationForBuyer(input.buyerId, input.productSlug);
+}
+
+export async function listConversationMessages(conversationId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(messages).where(eq(messages.conversationId, conversationId)).orderBy(messages.createdAt);
+}
+
+export async function createMessage(input: { conversationId: number; senderUserId: number; senderType: "buyer" | "seller"; body: string }) {
+  const db = await getDb();
+  if (!db) throw new Error("Database is not available");
+  await db.insert(messages).values(input);
+  await db.update(conversations).set({ updatedAt: new Date() }).where(eq(conversations.id, input.conversationId));
+  const result = await db.select().from(messages).where(and(eq(messages.conversationId, input.conversationId), eq(messages.senderUserId, input.senderUserId), eq(messages.body, input.body))).orderBy(desc(messages.id)).limit(1);
+  return result[0];
+}
+
+export async function listInbox() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(conversations).orderBy(desc(conversations.updatedAt));
+}
+
+export async function hasProcessedStripeEvent(eventId: string) {
+  const db = await getDb();
+  if (!db) return false;
+  const result = await db.select({ id: processedStripeEvents.id }).from(processedStripeEvents).where(eq(processedStripeEvents.eventId, eventId)).limit(1);
+  return result.length > 0;
+}
+
+export async function recordStripeEvent(eventId: string, eventType: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Database is not available");
+  await db.insert(processedStripeEvents).values({ eventId, eventType }).onDuplicateKeyUpdate({ set: { eventType } });
+}
+
+export async function recordPaidOrder(input: { userId: number; sessionId: string; paymentIntentId: string | null; amountCents: number; currency: string; itemsJson: string }) {
+  const db = await getDb();
+  if (!db) throw new Error("Database is not available");
+  await db.insert(orders).values({
+    userId: input.userId,
+    stripeCheckoutSessionId: input.sessionId,
+    stripePaymentIntentId: input.paymentIntentId,
+    amountCents: input.amountCents,
+    currency: input.currency,
+    status: "paid",
+    itemsJson: input.itemsJson,
+  }).onDuplicateKeyUpdate({ set: { status: "paid", stripePaymentIntentId: input.paymentIntentId } });
+}
+
+export async function listOrdersForUser(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(orders).where(eq(orders.userId, userId)).orderBy(desc(orders.createdAt));
+}
