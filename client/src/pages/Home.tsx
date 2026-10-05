@@ -17,6 +17,7 @@ import {
   products,
 } from "@/data/catalog";
 import { useCart } from "@/hooks/useCart";
+import { products as catalogProducts } from "@/data/catalog";
 import { Button } from "@/components/ui/button";
 
 export default function Home() {
@@ -138,6 +139,12 @@ export default function Home() {
               <div
                 className={`category-art bg-gradient-to-br ${category.tone}`}
               >
+                <img
+                  src={catalogProducts.find(product => product.category === category.label)?.image}
+                  alt=""
+                  className="category-art-image"
+                  loading="lazy"
+                />
                 <span className="category-symbol">{category.symbol}</span>
                 <span className="category-arrow">
                   <ArrowUpRight size={20} />

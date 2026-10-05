@@ -3,6 +3,7 @@ import { type Product, products } from "@/data/catalog";
 
 type CartLine = { productId: string; quantity: number; variant?: string };
 const STORAGE_KEY = "mercato-cart";
+const CART_EVENT = "mercato-cart-updated";
 const MAX_LINE_QUANTITY = 20;
 const MAX_CART_QUANTITY = 50;
 
@@ -65,7 +66,26 @@ export function useCart() {
   const [lines, setLines] = useState<CartLine[]>(readCart);
 
   useEffect(() => {
+    const handleCartUpdate = () => {
+      const nextLines = readCart();
+      setLines(current =>
+        JSON.stringify(current) === JSON.stringify(nextLines)
+          ? current
+          : nextLines
+      );
+    };
+
+    window.addEventListener(CART_EVENT, handleCartUpdate);
+    window.addEventListener("storage", handleCartUpdate);
+    return () => {
+      window.removeEventListener(CART_EVENT, handleCartUpdate);
+      window.removeEventListener("storage", handleCartUpdate);
+    };
+  }, []);
+
+  useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(lines));
+    window.dispatchEvent(new Event(CART_EVENT));
   }, [lines]);
 
   const addItem = useCallback(

@@ -15,6 +15,7 @@ import { Link, useRoute } from "wouter";
 import { Button } from "@/components/ui/button";
 import { getProduct, formatPrice, products } from "@/data/catalog";
 import { useCart } from "@/hooks/useCart";
+import { useFavorites } from "@/contexts/FavoritesContext";
 import { ProductCard } from "@/components/ProductCard";
 import { ChatPanel } from "@/components/ChatPanel";
 
@@ -24,8 +25,9 @@ export default function Product() {
   const cart = useCart();
   const [variant, setVariant] = useState(product?.variants[0] ?? "");
   const [quantity, setQuantity] = useState(1);
-  const [saved, setSaved] = useState(false);
   const [added, setAdded] = useState(false);
+  const { isFavorite, toggleFavorite } = useFavorites();
+  const saved = product ? isFavorite(product.id) : false;
   if (!product)
     return (
       <div className="mx-auto max-w-3xl px-5 py-32 text-center">
@@ -75,7 +77,7 @@ export default function Product() {
                   ? "save-button save-button-active static"
                   : "save-button static"
               }
-              onClick={() => setSaved(!saved)}
+              onClick={() => toggleFavorite(product.id)}
               aria-label="Guardar produto"
             >
               <Heart size={18} fill={saved ? "currentColor" : "none"} />

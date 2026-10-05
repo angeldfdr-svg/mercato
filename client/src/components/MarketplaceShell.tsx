@@ -2,7 +2,6 @@ import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import {
   ArrowUpRight,
-  Menu,
   Search,
   ShoppingBag,
   UserRound,
@@ -11,22 +10,25 @@ import {
   Plus,
   Minus,
   ArrowRight,
+  Heart,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { startLocalLogin } from "@/const";
 import { categoryMeta, formatPrice } from "@/data/catalog";
 import { useCart } from "@/hooks/useCart";
-import { cn } from "@/lib/utils";
+import { toast } from "sonner";
+import { useFavorites } from "@/contexts/FavoritesContext";
 
 // The alias path is kept explicit here so auth remains the starter's real Manus OAuth flow.
 export function MarketplaceShell({ children }: { children: React.ReactNode }) {
   const [location, navigate] = useLocation();
-  const [menuOpen, setMenuOpen] = useState(false);
   const [cartOpen, setCartOpen] = useState(false);
   const [search, setSearch] = useState("");
+  const [newsletterEmail, setNewsletterEmail] = useState("");
   const { user, isAuthenticated, logout } = useAuth();
   const cart = useCart();
+  const { count: favoriteCount } = useFavorites();
 
   const submitSearch = (event: React.FormEvent) => {
     event.preventDefault();
@@ -35,12 +37,18 @@ export function MarketplaceShell({ children }: { children: React.ReactNode }) {
         ? `/shop?query=${encodeURIComponent(search.trim())}`
         : "/shop"
     );
-    setMenuOpen(false);
   };
 
   const openAccount = () => {
     if (isAuthenticated) navigate("/account");
     else startLocalLogin();
+  };
+
+  const submitNewsletter = (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!newsletterEmail.trim()) return;
+    toast.success("Está na lista. Obrigado por subscrever.");
+    setNewsletterEmail("");
   };
 
   return (
@@ -51,17 +59,9 @@ export function MarketplaceShell({ children }: { children: React.ReactNode }) {
       </div>
       <header className="sticky top-0 z-30 border-b border-[#10203a]/10 bg-[#f8f7f3]/95 backdrop-blur-xl">
         <div className="mx-auto flex max-w-[1440px] items-center gap-5 px-5 py-4 lg:px-10">
-          <button
-            className="icon-button lg:hidden"
-            onClick={() => setMenuOpen(!menuOpen)}
-            aria-label="Abrir menu"
-          >
-            {menuOpen ? <X size={20} /> : <Menu size={20} />}
-          </button>
           <Link
             href="/"
             className="group flex shrink-0 items-center gap-2"
-            onClick={() => setMenuOpen(false)}
           >
             <span className="brand-mark">
               M<span>/</span>
@@ -70,39 +70,6 @@ export function MarketplaceShell({ children }: { children: React.ReactNode }) {
               mercato
             </span>
           </Link>
-          <nav className={cn("main-nav", menuOpen && "main-nav-open")}>
-            <Link
-              href="/shop"
-              className={cn(
-                "nav-link",
-                location === "/shop" && "nav-link-active"
-              )}
-              onClick={() => setMenuOpen(false)}
-            >
-              Descobrir
-            </Link>
-            <Link
-              href="/shop?category=Casa"
-              className="nav-link"
-              onClick={() => setMenuOpen(false)}
-            >
-              Casa
-            </Link>
-            <Link
-              href="/shop?category=Tech"
-              className="nav-link"
-              onClick={() => setMenuOpen(false)}
-            >
-              Tech
-            </Link>
-            <Link
-              href="/shop?category=Estilo"
-              className="nav-link"
-              onClick={() => setMenuOpen(false)}
-            >
-              Estilo
-            </Link>
-          </nav>
           <form
             onSubmit={submitSearch}
             className="search-bar ml-auto hidden max-w-[310px] flex-1 md:flex"
@@ -132,6 +99,14 @@ export function MarketplaceShell({ children }: { children: React.ReactNode }) {
               <UserRound size={19} />
             </button>
             <button
+              className="icon-button"
+              onClick={() => navigate("/favorites")}
+              aria-label="Abrir favoritos"
+            >
+              <Heart size={19} />
+              {favoriteCount > 0 && <span className="favorite-count">{favoriteCount}</span>}
+            </button>
+            <button
               className="cart-button"
               onClick={() => setCartOpen(true)}
               aria-label="Abrir carrinho"
@@ -141,47 +116,7 @@ export function MarketplaceShell({ children }: { children: React.ReactNode }) {
             </button>
           </div>
         </div>
-        {menuOpen && (
-          <div className="border-t border-[#10203a]/10 px-5 py-4 lg:hidden">
-            <form onSubmit={submitSearch} className="search-bar mb-4">
-              <Search size={17} />
-              <input
-                value={search}
-                onChange={event => setSearch(event.target.value)}
-                placeholder="Procurar no Mercato"
-              />
-            </form>
-            <div className="grid max-h-[55vh] grid-cols-2 gap-2 overflow-y-auto">
-              <Link
-                href="/shop"
-                className="mobile-nav-link"
-                onClick={() => setMenuOpen(false)}
-              >
-                Descobrir <ArrowUpRight size={15} />
-              </Link>
-              {categoryMeta.map(category => (
-                <Link
-                  key={category.label}
-                  href={`/shop?category=${encodeURIComponent(category.label)}`}
-                  className="mobile-nav-link"
-                  onClick={() => setMenuOpen(false)}
-                >
-                  {category.label} <ArrowUpRight size={15} />
-                </Link>
-              ))}
-              <button
-                className="mobile-nav-link text-left"
-                onClick={() => {
-                  setMenuOpen(false);
-                  openAccount();
-                }}
-              >
-                {isAuthenticated ? "A minha conta" : "Iniciar sessão"}{" "}
-                <ArrowUpRight size={15} />
-              </button>
-            </div>
-          </div>
-        )}
+
       </header>
       <main>{children}</main>
       <footer className="border-t border-[#10203a]/10 bg-[#f0efe9] px-5 py-12 lg:px-10">
@@ -217,10 +152,10 @@ export function MarketplaceShell({ children }: { children: React.ReactNode }) {
           <div>
             <p className="footer-kicker">Ajuda</p>
             <div className="footer-links">
-              <span>Envios e trocas</span>
-              <span>Estado da encomenda</span>
-              <span>Guia de tamanhos</span>
-              <span>Contacto</span>
+<Link href="/shop">Envios e trocas</Link>
+                <Link href="/account">Estado da encomenda</Link>
+                <Link href="/shop">Guia de tamanhos</Link>
+                <a href="mailto:ola@mercato.pt">Contacto</a>
             </div>
           </div>
           <div>
@@ -228,12 +163,19 @@ export function MarketplaceShell({ children }: { children: React.ReactNode }) {
             <p className="mb-3 text-sm leading-6 text-[#536178]">
               Novidades com intenção. Sem ruído.
             </p>
-            <div className="newsletter">
-              <input placeholder="O seu email" type="email" />
-              <button aria-label="Subscrever">
+            <form className="newsletter" onSubmit={submitNewsletter}>
+              <input
+                placeholder="O seu email"
+                type="email"
+                required
+                value={newsletterEmail}
+                onChange={event => setNewsletterEmail(event.target.value)}
+                aria-label="Email para newsletter"
+              />
+              <button type="submit" aria-label="Subscrever">
                 <ArrowRight size={17} />
               </button>
-            </div>
+            </form>
           </div>
         </div>
         <div className="mx-auto mt-12 flex max-w-[1440px] flex-col justify-between gap-3 border-t border-[#10203a]/10 pt-5 text-xs text-[#536178] sm:flex-row">

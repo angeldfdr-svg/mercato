@@ -1,6 +1,6 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useLocation } from "wouter";
-import { ArrowUpDown, Search, SlidersHorizontal, X } from "lucide-react";
+import { ArrowUpDown, Search, X } from "lucide-react";
 import { categoryMeta, products, type Category } from "@/data/catalog";
 import { ProductCard } from "@/components/ProductCard";
 import { Button } from "@/components/ui/button";
@@ -21,11 +21,22 @@ export default function Shop() {
   const params = new URLSearchParams(location.split("?")[1] ?? "");
   const query = params.get("query") ?? "";
   const categoryParam = params.get("category") ?? "Todos";
-  const category = categories.includes(categoryParam as Category | "Todos")
+  const initialCategory = categories.includes(categoryParam as Category | "Todos")
     ? (categoryParam as Category | "Todos")
     : "Todos";
+  const [selectedCategory, setSelectedCategory] = useState<"Todos" | Category>(initialCategory);
+  const category = selectedCategory;
+
+  useEffect(() => {
+    const nextParams = new URLSearchParams(location.split("?")[1] ?? "");
+    const nextCategory = nextParams.get("category") ?? "Todos";
+    setSelectedCategory(
+      categories.includes(nextCategory as Category | "Todos")
+        ? (nextCategory as Category | "Todos")
+        : "Todos"
+    );
+  }, [location]);
   const [sort, setSort] = useState("featured");
-  const [mobileFilters, setMobileFilters] = useState(false);
 
   const filtered = useMemo(() => {
     const normalizedSearch = normalizeSearch(query);
@@ -50,6 +61,7 @@ export default function Shop() {
   }, [category, query, sort]);
 
   const chooseCategory = (next: "Todos" | Category) => {
+    setSelectedCategory(next);
     const nextParams = new URLSearchParams();
     if (next !== "Todos") nextParams.set("category", next);
     if (query) nextParams.set("query", query);
@@ -61,6 +73,13 @@ export default function Shop() {
     nextParams.delete("query");
     navigate(nextParams.size ? `/shop?${nextParams.toString()}` : "/shop");
   };
+
+  const clearFilters = () => {
+    setSelectedCategory("Todos");
+    navigate(query ? `/shop?query=${encodeURIComponent(query)}` : "/shop");
+  };
+
+  const hasActiveFilters = category !== "Todos" || Boolean(query);
 
   return (
     <div className="mx-auto max-w-[1440px] px-5 pb-24 pt-10 lg:px-10 lg:pt-16">
@@ -97,12 +116,6 @@ export default function Shop() {
           ))}
         </div>
         <div className="toolbar-actions">
-          <button
-            className="toolbar-button lg:hidden"
-            onClick={() => setMobileFilters(true)}
-          >
-            <SlidersHorizontal size={15} /> Filtros
-          </button>
           <label className="sort-select">
             <ArrowUpDown size={14} />
             <select
@@ -129,9 +142,9 @@ export default function Shop() {
             </>
           )}
         </p>
-        {query && (
-          <button className="text-link" onClick={clearSearch}>
-            Limpar pesquisa <X size={14} />
+        {hasActiveFilters && (
+          <button className="text-link" onClick={clearFilters}>
+            Limpar filtros <X size={14} />
           </button>
         )}
       </div>
@@ -157,49 +170,6 @@ export default function Shop() {
           >
             Ver tudo
           </Button>
-        </div>
-      )}
-      {mobileFilters && (
-        <div
-          className="fixed inset-0 z-40 bg-[#10203a]/30 lg:hidden"
-          onClick={() => setMobileFilters(false)}
-        >
-          <div
-            className="absolute bottom-0 left-0 right-0 rounded-t-[28px] bg-[#f8f7f3] p-6"
-            onClick={event => event.stopPropagation()}
-          >
-            <div className="mb-6 flex items-center justify-between">
-              <h2 className="font-display text-xl font-bold">
-                Filtrar por categoria
-              </h2>
-              <button
-                className="icon-button"
-                onClick={() => setMobileFilters(false)}
-                aria-label="Fechar filtros"
-              >
-                <X size={18} />
-              </button>
-            </div>
-            <div className="grid grid-cols-2 gap-2">
-              {categories.map(item => (
-                <button
-                  key={item}
-                  aria-pressed={category === item}
-                  className={
-                    category === item
-                      ? "category-pill-active py-3"
-                      : "category-pill py-3"
-                  }
-                  onClick={() => {
-                    chooseCategory(item);
-                    setMobileFilters(false);
-                  }}
-                >
-                  {item}
-                </button>
-              ))}
-            </div>
-          </div>
         </div>
       )}
     </div>
