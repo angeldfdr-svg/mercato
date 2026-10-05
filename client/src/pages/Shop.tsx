@@ -98,8 +98,11 @@ export default function Shop() {
         </div>
         <div className="toolbar-actions">
           <button
-            className="toolbar-button lg:hidden"
+            type="button"
+            className="toolbar-button"
             onClick={() => setMobileFilters(true)}
+            aria-expanded={mobileFilters}
+            aria-controls="shop-filters"
           >
             <SlidersHorizontal size={15} /> Filtros
           </button>
@@ -161,7 +164,11 @@ export default function Shop() {
       )}
       {mobileFilters && (
         <div
-          className="fixed inset-0 z-40 bg-[#10203a]/30 lg:hidden"
+          id="shop-filters"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Filtros de produtos"
+          className="fixed inset-0 z-40 bg-[#10203a]/30"
           onClick={() => setMobileFilters(false)}
         >
           <div
