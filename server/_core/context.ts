@@ -1,7 +1,7 @@
 import type { CreateExpressContextOptions } from "@trpc/server/adapters/express";
 import type { User } from "../../drizzle/schema";
 import { sdk } from "./sdk";
-import { authenticateLocalRequest } from "../localAuth";
+import { authenticateLocalRequest, authenticateSupabaseRequest } from "../localAuth";
 
 export type TrpcContext = {
   req: CreateExpressContextOptions["req"];
@@ -12,7 +12,7 @@ export type TrpcContext = {
 export async function createContext(
   opts: CreateExpressContextOptions
 ): Promise<TrpcContext> {
-  let user: User | null = (await authenticateLocalRequest(opts.req)) ?? null;
+  let user: User | null = (await authenticateLocalRequest(opts.req)) ?? (await authenticateSupabaseRequest(opts.req));
 
   if (!user) {
     try {

@@ -6,7 +6,9 @@ import {
   destroyLocalSession,
   hashPassword,
   sendPasswordResetEmail,
-  verifyPassword,
+  setSupabaseSession,
+  supabaseAuthRequest,
+  SUPABASE_COOKIE,
 } from "../localAuth";
 import { authRateLimits } from "./rateLimits";
 
@@ -32,14 +34,13 @@ function validEmail(email: string) {
 }
 
 export function getAuthProviderStatus() {
-  const database = Boolean(process.env.DATABASE_URL?.trim());
+  const supabase = Boolean(
+    process.env.SUPABASE_URL?.trim() &&
+      (process.env.SUPABASE_PUBLISHABLE_KEY?.trim() || process.env.SUPABASE_ANON_KEY?.trim())
+  );
   return {
-    email: database,
-    passwordRecovery: Boolean(
-      database &&
-      process.env.RESEND_API_KEY?.trim() &&
-      process.env.AUTH_EMAIL_FROM?.trim()
-    ),
+    email: supabase,
+    passwordRecovery: supabase,
   };
 }
 
@@ -71,26 +72,13 @@ export function registerLocalAuthRoutes(app: Express) {
     }
 
     try {
-      if (await db.getUserByEmail(email)) {
-        return res
-          .status(409)
-          .json({ error: "Já existe uma conta com este email" });
-      }
-      const user = await db.createLocalUser({
-        openId: `local_${randomBytes(20).toString("hex")}`,
+      const data = await supabaseAuthRequest("/signup", {
         email,
-        name,
-        passwordHash: await hashPassword(password),
+        password,
+        data: { name },
       });
-      if (!user) {
-        return res
-          .status(500)
-          .json({ error: "Não foi possível criar a conta" });
-      }
-      await createLocalSession(user.id, res, req);
-      return res
-        .status(201)
-        .json({ user: { id: user.id, name: user.name, email: user.email } });
+      if (data.access_token) setSupabaseSession(data.access_token, res, req);
+      return res.status(201).json({ user: data.user ?? null, needsConfirmation: !data.access_token });
     } catch (error) {
       console.error("[Auth] Register failed", error);
       return res.status(500).json({ error: "Não foi possível criar a conta" });
@@ -113,17 +101,15 @@ export function registerLocalAuthRoutes(app: Express) {
       return res.status(401).json({ error: "Email ou password incorretos" });
     }
     try {
-      const user = await db.getUserByEmail(email);
-      if (
-        !user?.passwordHash ||
-        !(await verifyPassword(password, user.passwordHash))
-      ) {
+      const data = await supabaseAuthRequest("/token?grant_type=password", {
+        email,
+        password,
+      });
+      if (!data.access_token) {
         return res.status(401).json({ error: "Email ou password incorretos" });
       }
-      await createLocalSession(user.id, res, req);
-      return res.json({
-        user: { id: user.id, name: user.name, email: user.email },
-      });
+      setSupabaseSession(data.access_token, res, req);
+      return res.json({ user: data.user ?? null });
     } catch (error) {
       console.error("[Auth] Login failed", error);
       return res.status(500).json({ error: "Não foi possível iniciar sessão" });
@@ -133,6 +119,7 @@ export function registerLocalAuthRoutes(app: Express) {
   app.post("/api/auth/logout", async (req, res) => {
     try {
       await destroyLocalSession(req, res);
+      res.clearCookie(SUPABASE_COOKIE, { httpOnly: true, sameSite: "lax", secure: req.secure || req.protocol === "https" || process.env.NODE_ENV === "production", path: "/", maxAge: -1 });
       return res.status(204).end();
     } catch (error) {
       console.error("[Auth] Logout failed", error);
