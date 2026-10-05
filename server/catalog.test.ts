@@ -1,12 +1,16 @@
 import { existsSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
-import { products } from "../client/src/data/catalog";
+import { categoryMeta, products } from "../client/src/data/catalog";
 import { checkoutProducts } from "../shared/products";
 
 describe("Mercato product catalogue", () => {
   it("has unique products with a local image for every listing", () => {
-    expect(products).toHaveLength(20);
+    expect(products).toHaveLength(30);
+    expect(categoryMeta).toHaveLength(10);
+    expect(new Set(products.map(product => product.category))).toEqual(
+      new Set(categoryMeta.map(category => category.label))
+    );
     expect(new Set(products.map(product => product.id)).size).toBe(
       products.length
     );

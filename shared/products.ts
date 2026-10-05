@@ -77,4 +77,54 @@ export const checkoutProducts: Record<string, CheckoutProduct> = {
     name: "Garrafa Térmica Fluxo",
     amountCents: 3600,
   },
+  "origem-21": {
+    id: "origem-21",
+    name: "Conjunto de Café Origem",
+    amountCents: 6800,
+  },
+  "raiz-22": {
+    id: "raiz-22",
+    name: "Tábua de Servir Raiz",
+    amountCents: 4600,
+  },
+  "nomada-23": {
+    id: "nomada-23",
+    name: "Lanterna Nómada",
+    amountCents: 7400,
+  },
+  "field-24": {
+    id: "field-24",
+    name: "Cadeira Dobrável Field",
+    amountCents: 11900,
+  },
+  "ponto-25": {
+    id: "ponto-25",
+    name: "Caderno de Linho Ponto",
+    amountCents: 2400,
+  },
+  "linha-26": {
+    id: "linha-26",
+    name: "Caneta Tinteiro Linha",
+    amountCents: 5800,
+  },
+  "arco-27": {
+    id: "arco-27",
+    name: "Arco-íris de Madeira",
+    amountCents: 3400,
+  },
+  "sol-28": {
+    id: "sol-28",
+    name: "Mochila Mini Sol",
+    amountCents: 4200,
+  },
+  "nuvem-pet-29": {
+    id: "nuvem-pet-29",
+    name: "Cama Pet Nuvem",
+    amountCents: 8900,
+  },
+  "pata-30": {
+    id: "pata-30",
+    name: "Taças Pata com Suporte",
+    amountCents: 3800,
+  },
 };

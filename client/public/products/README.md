@@ -6,6 +6,10 @@ As imagens são servidas localmente em WebP para o catálogo continuar a funcion
 
 As imagens abaixo foram geradas para representar os produtos fictícios do catálogo: `luma-table-lamp.webp`, `carry-canvas-tote.webp`, `sonic-mini-speaker.webp`, `arc-lounge-chair.webp`, `mori-desk-organizer.webp`, `sora-soft-robe.webp`, `jarra-ceramica-alba.webp`, `manta-onda.webp`, `mesa-de-apoio-nido.webp` e `vela-perfumada-bruma.webp`.
 
+## Imagens geradas para a expansão do catálogo
+
+Estas imagens originais foram criadas para representar os novos produtos e são servidas localmente: `cafe-origem.webp`, `tabua-raiz.webp`, `lanterna-nomada.webp`, `cadeira-field.webp`, `caderno-linho.webp`, `caneta-linha.webp`, `arco-madeira.webp`, `mochila-mini-sol.webp`, `cama-nuvem-pet.webp` e `tacas-pata.webp`.
+
 ## Referências das restantes imagens
 
 - `auscultadores-nuvem.webp` — [Vecteezy: wireless headphones](https://www.vecteezy.com/free-photos/wireless-headphones)

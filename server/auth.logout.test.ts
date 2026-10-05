@@ -57,14 +57,22 @@ describe("auth.logout", () => {
     expect(clearedCookies.map(cookie => cookie.name).sort()).toEqual(
       [COOKIE_NAME, "mercato_session"].sort()
     );
-    for (const cookie of clearedCookies) {
-      expect(cookie.options).toMatchObject({
-        maxAge: -1,
-        secure: true,
-        sameSite: "none",
-        httpOnly: true,
-        path: "/",
-      });
-    }
+    const optionsByName = new Map(
+      clearedCookies.map(cookie => [cookie.name, cookie.options])
+    );
+    expect(optionsByName.get("mercato_session")).toMatchObject({
+      maxAge: -1,
+      secure: true,
+      sameSite: "lax",
+      httpOnly: true,
+      path: "/",
+    });
+    expect(optionsByName.get(COOKIE_NAME)).toMatchObject({
+      maxAge: -1,
+      secure: true,
+      sameSite: "none",
+      httpOnly: true,
+      path: "/",
+    });
   });
 });

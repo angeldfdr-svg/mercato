@@ -1,4 +1,14 @@
-export type Category = "Casa" | "Tech" | "Estilo" | "Bem-estar";
+export type Category =
+  | "Casa"
+  | "Tech"
+  | "Estilo"
+  | "Bem-estar"
+  | "Cozinha"
+  | "Outdoor"
+  | "Papelaria"
+  | "Crianças"
+  | "Animais"
+  | "Escritório";
 
 export type Product = {
   id: string;
@@ -20,29 +30,70 @@ export type Product = {
 };
 
 export const categoryMeta: Array<{
-  label: string;
+  label: Category;
   note: string;
   tone: string;
+  symbol: string;
 }> = [
   {
     label: "Casa",
     note: "Peças para viver melhor",
     tone: "from-[#d7f64a] to-[#efff9e]",
+    symbol: "⌂",
   },
   {
     label: "Tech",
     note: "Ferramentas que acompanham",
     tone: "from-[#155eef] to-[#73a1ff]",
+    symbol: "↗",
   },
   {
     label: "Estilo",
     note: "O essencial, bem escolhido",
     tone: "from-[#ffc7b8] to-[#ffe1d8]",
+    symbol: "✳",
   },
   {
     label: "Bem-estar",
     note: "Ritmos mais leves",
     tone: "from-[#d9d3ff] to-[#f2f0ff]",
+    symbol: "≈",
+  },
+  {
+    label: "Cozinha",
+    note: "Rituais para a mesa",
+    tone: "from-[#f4d9b2] to-[#fff1d6]",
+    symbol: "◒",
+  },
+  {
+    label: "Outdoor",
+    note: "Lá fora, com conforto",
+    tone: "from-[#b9d8bb] to-[#e6f0d8]",
+    symbol: "⌁",
+  },
+  {
+    label: "Papelaria",
+    note: "Ideias que ganham forma",
+    tone: "from-[#c9e4df] to-[#eff7eb]",
+    symbol: "✎",
+  },
+  {
+    label: "Crianças",
+    note: "Pequenas grandes descobertas",
+    tone: "from-[#ffcbb8] to-[#fff0ce]",
+    symbol: "✦",
+  },
+  {
+    label: "Animais",
+    note: "Conforto para toda a família",
+    tone: "from-[#e2d6f2] to-[#f6f1fa]",
+    symbol: "♡",
+  },
+  {
+    label: "Escritório",
+    note: "Mais espaço para as ideias",
+    tone: "from-[#c5dcf1] to-[#edf5fb]",
+    symbol: "▤",
   },
 ];
 
@@ -139,8 +190,8 @@ export const products: Product[] = [
     id: "mori-05",
     slug: "mori-desk-organizer",
     name: "Organizador de Secretária Mori",
-    category: "Tech",
-    subcategory: "Escritório",
+    category: "Escritório",
+    subcategory: "Organização",
     price: 42,
     rating: 4.6,
     reviews: 28,
@@ -286,8 +337,8 @@ export const products: Product[] = [
     id: "dot-12",
     slug: "teclado-dot",
     name: "Conjunto Teclado e Rato Dot",
-    category: "Tech",
-    subcategory: "Escritório",
+    category: "Escritório",
+    subcategory: "Periféricos",
     price: 79,
     rating: 4.6,
     reviews: 34,
@@ -458,9 +509,227 @@ export const products: Product[] = [
     image: productImage("garrafa-termica-fluxo"),
     accent: "#e6d9ce",
   },
+  {
+    id: "origem-21",
+    slug: "kit-cafe-origem",
+    name: "Conjunto de Café Origem",
+    category: "Cozinha",
+    subcategory: "Café e chá",
+    price: 68,
+    rating: 4.9,
+    reviews: 18,
+    badge: "Novo",
+    description:
+      "Dripper, jarro e chávena em cerâmica e vidro para transformar o café da manhã num ritual tranquilo.",
+    details: [
+      "Dripper em cerâmica vidrada",
+      "Jarro de vidro borossilicato",
+      "Chávena a condizer incluída",
+    ],
+    variants: ["Verde-sálvia", "Areia"],
+    color: "Verde-sálvia",
+    image: productImage("cafe-origem"),
+    accent: "#dde8d4",
+  },
+  {
+    id: "raiz-22",
+    slug: "tabua-de-servir-raiz",
+    name: "Tábua de Servir Raiz",
+    category: "Cozinha",
+    subcategory: "Mesa posta",
+    price: 46,
+    rating: 4.8,
+    reviews: 12,
+    description:
+      "Carvalho de grão marcado, formas suaves e um toque de couro para servir devagar e partilhar melhor.",
+    details: [
+      "Carvalho maciço",
+      "Acabamento com óleo alimentar",
+      "Argola de couro para pendurar",
+    ],
+    variants: ["Carvalho", "Nogueira"],
+    color: "Carvalho",
+    image: productImage("tabua-raiz"),
+    accent: "#ead7c0",
+  },
+  {
+    id: "nomada-23",
+    slug: "lanterna-nomada",
+    name: "Lanterna Nómada",
+    category: "Outdoor",
+    subcategory: "Iluminação exterior",
+    price: 74,
+    rating: 4.8,
+    reviews: 16,
+    badge: "Novo",
+    description:
+      "Uma luz quente e portátil, pronta para noites longas no jardim, no parque ou no próximo acampamento.",
+    details: [
+      "Bateria recarregável por USB-C",
+      "Até 20 horas de autonomia",
+      "Brilho regulável e pega integrada",
+    ],
+    variants: ["Verde-floresta", "Areia"],
+    color: "Verde-floresta",
+    image: productImage("lanterna-nomada"),
+    accent: "#d8e2d5",
+  },
+  {
+    id: "field-24",
+    slug: "cadeira-dobravel-field",
+    name: "Cadeira Dobrável Field",
+    category: "Outdoor",
+    subcategory: "Campismo",
+    price: 119,
+    rating: 4.7,
+    reviews: 9,
+    description:
+      "Estrutura leve e lona robusta para levar um lugar confortável para onde o dia o levar.",
+    details: [
+      "Estrutura em alumínio leve",
+      "Lona resistente e lavável",
+      "Dobra compacta com bolsa incluída",
+    ],
+    variants: ["Terracota", "Verde-oliva"],
+    color: "Terracota",
+    image: productImage("cadeira-field"),
+    accent: "#e7d7ce",
+  },
+  {
+    id: "ponto-25",
+    slug: "caderno-de-linho-ponto",
+    name: "Caderno de Linho Ponto",
+    category: "Papelaria",
+    subcategory: "Cadernos",
+    price: 24,
+    rating: 4.9,
+    reviews: 37,
+    badge: "Novo",
+    description:
+      "Uma capa de linho natural e páginas suaves para guardar planos, listas e ideias ainda sem nome.",
+    details: [
+      "Capa rígida revestida a linho",
+      "192 páginas marfim sem pauta",
+      "Papel certificado FSC",
+    ],
+    variants: ["Linho natural", "Verde-sálvia"],
+    color: "Linho natural",
+    image: productImage("caderno-linho"),
+    accent: "#e8e2d8",
+  },
+  {
+    id: "linha-26",
+    slug: "caneta-tinteiro-linha",
+    name: "Caneta Tinteiro Linha",
+    category: "Papelaria",
+    subcategory: "Escrita",
+    price: 58,
+    rating: 4.7,
+    reviews: 14,
+    description:
+      "Uma linha simples, equilíbrio confortável e uma ponta macia para tornar cada nota mais pessoal.",
+    details: [
+      "Ponta em aço inoxidável",
+      "Corpo em resina acetinada",
+      "Conversor e estojo incluídos",
+    ],
+    variants: ["Azul-noite", "Verde-floresta"],
+    color: "Azul-noite",
+    image: productImage("caneta-linha"),
+    accent: "#dce1e8",
+  },
+  {
+    id: "arco-27",
+    slug: "arco-iris-de-madeira",
+    name: "Arco-íris de Madeira",
+    category: "Crianças",
+    subcategory: "Brinquedos de madeira",
+    price: 34,
+    rating: 4.9,
+    reviews: 22,
+    badge: "Favorito",
+    description:
+      "Arcos coloridos que convidam a empilhar, construir e inventar uma história diferente todos os dias.",
+    details: [
+      "Madeira de faia certificada",
+      "Tintas à base de água",
+      "Adequado a partir dos 18 meses",
+    ],
+    variants: ["Cores suaves", "Tons naturais"],
+    color: "Cores suaves",
+    image: productImage("arco-madeira"),
+    accent: "#f0dfc9",
+  },
+  {
+    id: "sol-28",
+    slug: "mochila-mini-sol",
+    name: "Mochila Mini Sol",
+    category: "Crianças",
+    subcategory: "Mochilas",
+    price: 42,
+    rating: 4.8,
+    reviews: 11,
+    badge: "Novo",
+    description:
+      "Pequena no tamanho, grande nas aventuras: espaço para o lanche, o livro favorito e mais uma descoberta.",
+    details: [
+      "Lona de algodão resistente à água",
+      "Alças acolchoadas ajustáveis",
+      "Bolso frontal com fecho",
+    ],
+    variants: ["Amarelo-sol", "Verde-sálvia"],
+    color: "Amarelo-sol",
+    image: productImage("mochila-mini-sol"),
+    accent: "#f4e3c8",
+  },
+  {
+    id: "nuvem-pet-29",
+    slug: "cama-pet-nuvem",
+    name: "Cama Pet Nuvem",
+    category: "Animais",
+    subcategory: "Camas e descanso",
+    price: 89,
+    rating: 4.9,
+    reviews: 13,
+    badge: "Novo",
+    description:
+      "Bouclé macio, laterais acolchoadas e um lugar seguro para as sestas que também fazem parte da família.",
+    details: [
+      "Capa removível e lavável",
+      "Base antiderrapante",
+      "Enchimento de alta densidade",
+    ],
+    variants: ["Areia", "Cinza-pedra"],
+    color: "Areia",
+    image: productImage("cama-nuvem-pet"),
+    accent: "#e8e0d5",
+  },
+  {
+    id: "pata-30",
+    slug: "tacas-pet-pata",
+    name: "Taças Pata com Suporte",
+    category: "Animais",
+    subcategory: "Alimentação",
+    price: 38,
+    rating: 4.8,
+    reviews: 8,
+    description:
+      "Cerâmica mate e carvalho natural para uma zona de refeição tão bem pensada como o resto da casa.",
+    details: [
+      "Duas taças de cerâmica",
+      "Suporte em carvalho maciço",
+      "Taças próprias para máquina de lavar",
+    ],
+    variants: ["Marfim e sálvia", "Marfim e terracota"],
+    color: "Marfim e sálvia",
+    image: productImage("tacas-pata"),
+    accent: "#e6dccd",
+  },
 ];
 
-export const featuredProducts = products.slice(0, 4);
+export const featuredProducts = products.filter(product =>
+  ["luma-01", "origem-21", "nomada-23", "arco-27"].includes(product.id)
+);
 
 export function formatPrice(value: number) {
   return new Intl.NumberFormat("pt-PT", {

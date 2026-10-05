@@ -10,7 +10,12 @@ import {
 } from "lucide-react";
 import { Link } from "wouter";
 import { ProductCard } from "@/components/ProductCard";
-import { categoryMeta, featuredProducts, formatPrice } from "@/data/catalog";
+import {
+  categoryMeta,
+  featuredProducts,
+  formatPrice,
+  products,
+} from "@/data/catalog";
 import { useCart } from "@/hooks/useCart";
 import { Button } from "@/components/ui/button";
 
@@ -40,8 +45,8 @@ export default function Home() {
                   Explorar a curadoria <ArrowRight size={17} />
                 </Button>
               </Link>
-              <Link href="/shop?category=Casa" className="text-link">
-                Ver mais vendidos <ArrowUpRight size={15} />
+              <Link href="/shop" className="text-link">
+                Ver toda a seleção <ArrowUpRight size={15} />
               </Link>
             </div>
             <div className="hero-note">
@@ -127,21 +132,13 @@ export default function Home() {
           {categoryMeta.map(category => (
             <Link
               key={category.label}
-              href={`/shop?category=${category.label}`}
+              href={`/shop?category=${encodeURIComponent(category.label)}`}
               className="category-card group"
             >
               <div
                 className={`category-art bg-gradient-to-br ${category.tone}`}
               >
-                <span className="category-symbol">
-                  {category.label === "Casa"
-                    ? "⌂"
-                    : category.label === "Tech"
-                      ? "↗"
-                      : category.label === "Estilo"
-                        ? "✳"
-                        : "≈"}
-                </span>
+                <span className="category-symbol">{category.symbol}</span>
                 <span className="category-arrow">
                   <ArrowUpRight size={20} />
                 </span>
@@ -152,6 +149,14 @@ export default function Home() {
                     {category.label}
                   </h3>
                   <p className="mt-1 text-sm text-[#7b8799]">{category.note}</p>
+                  <p className="mt-1 text-[11px] font-semibold text-[#155eef]">
+                    {
+                      products.filter(
+                        product => product.category === category.label
+                      ).length
+                    }{" "}
+                    peças
+                  </p>
                 </div>
                 <span className="text-xs font-bold uppercase tracking-[0.12em] text-[#155eef]">
                   Explorar

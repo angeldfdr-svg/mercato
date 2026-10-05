@@ -1,23 +1,15 @@
 import { useMemo, useState } from "react";
 import { useLocation } from "wouter";
-import {
-  Filter,
-  Search,
-  SlidersHorizontal,
-  ArrowUpDown,
-  X,
-} from "lucide-react";
-import { products, type Category } from "@/data/catalog";
+import { ArrowUpDown, Search, SlidersHorizontal, X } from "lucide-react";
+import { categoryMeta, products, type Category } from "@/data/catalog";
 import { ProductCard } from "@/components/ProductCard";
 import { Button } from "@/components/ui/button";
 
 const categories: Array<"Todos" | Category> = [
   "Todos",
-  "Casa",
-  "Tech",
-  "Estilo",
-  "Bem-estar",
+  ...categoryMeta.map(category => category.label),
 ];
+
 const normalizeSearch = (value: string) =>
   value
     .normalize("NFD")
@@ -28,16 +20,15 @@ export default function Shop() {
   const [location, navigate] = useLocation();
   const params = new URLSearchParams(location.split("?")[1] ?? "");
   const query = params.get("query") ?? "";
-  const categoryParam = (params.get("category") as Category | null) ?? "Todos";
-  const [category, setCategory] = useState<"Todos" | Category>(
-    categories.includes(categoryParam) ? categoryParam : "Todos"
-  );
+  const categoryParam = params.get("category") ?? "Todos";
+  const category = categories.includes(categoryParam as Category | "Todos")
+    ? (categoryParam as Category | "Todos")
+    : "Todos";
   const [sort, setSort] = useState("featured");
   const [mobileFilters, setMobileFilters] = useState(false);
-  const [search, setSearch] = useState(query);
 
   const filtered = useMemo(() => {
-    const normalizedSearch = normalizeSearch(search);
+    const normalizedSearch = normalizeSearch(query);
     const result = products.filter(product => {
       const matchesCategory =
         category === "Todos" || product.category === category;
@@ -46,25 +37,39 @@ export default function Shop() {
       );
       return matchesCategory && haystack.includes(normalizedSearch);
     });
-    if (sort === "price-low")
+    if (sort === "price-low") {
       return [...result].sort((a, b) => a.price - b.price);
-    if (sort === "price-high")
+    }
+    if (sort === "price-high") {
       return [...result].sort((a, b) => b.price - a.price);
-    if (sort === "rating")
+    }
+    if (sort === "rating") {
       return [...result].sort((a, b) => b.rating - a.rating);
+    }
     return result;
-  }, [category, search, sort]);
+  }, [category, query, sort]);
 
-  const chooseCategory = (next: typeof category) => {
-    setCategory(next);
-    navigate(next === "Todos" ? "/shop" : `/shop?category=${next}`);
+  const chooseCategory = (next: "Todos" | Category) => {
+    const nextParams = new URLSearchParams();
+    if (next !== "Todos") nextParams.set("category", next);
+    if (query) nextParams.set("query", query);
+    navigate(nextParams.size ? `/shop?${nextParams.toString()}` : "/shop");
+  };
+
+  const clearSearch = () => {
+    const nextParams = new URLSearchParams(params);
+    nextParams.delete("query");
+    navigate(nextParams.size ? `/shop?${nextParams.toString()}` : "/shop");
   };
 
   return (
     <div className="mx-auto max-w-[1440px] px-5 pb-24 pt-10 lg:px-10 lg:pt-16">
       <div className="shop-header">
         <div>
-          <p className="section-kicker">A loja Mercato</p>
+          <p className="section-kicker">
+            A loja Mercato · {products.length} peças · {categoryMeta.length}{" "}
+            categorias
+          </p>
           <h1 className="page-title">
             Tudo o que
             <br />
@@ -77,11 +82,12 @@ export default function Shop() {
         </p>
       </div>
       <div className="catalog-toolbar">
-        <div className="category-pills">
+        <div className="category-pills" aria-label="Filtrar por categoria">
           {categories.map(item => (
             <button
               key={item}
               onClick={() => chooseCategory(item)}
+              aria-pressed={category === item}
               className={
                 category === item ? "category-pill-active" : "category-pill"
               }
@@ -116,21 +122,15 @@ export default function Shop() {
         <p className="text-sm text-[#7b8799]">
           <strong className="text-[#10203a]">{filtered.length}</strong>{" "}
           {filtered.length === 1 ? "resultado" : "resultados"}
-          {search && (
+          {query && (
             <>
               {" "}
-              para <strong className="text-[#10203a]">“{search}”</strong>
+              para <strong className="text-[#10203a]">“{query}”</strong>
             </>
           )}
         </p>
-        {search && (
-          <button
-            className="text-link"
-            onClick={() => {
-              setSearch("");
-              navigate("/shop");
-            }}
-          >
+        {query && (
+          <button className="text-link" onClick={clearSearch}>
             Limpar pesquisa <X size={14} />
           </button>
         )}
@@ -153,11 +153,7 @@ export default function Shop() {
           </p>
           <Button
             className="mt-6 rounded-full bg-[#155eef]"
-            onClick={() => {
-              setSearch("");
-              setCategory("Todos");
-              navigate("/shop");
-            }}
+            onClick={() => navigate("/shop")}
           >
             Ver tudo
           </Button>
@@ -179,6 +175,7 @@ export default function Shop() {
               <button
                 className="icon-button"
                 onClick={() => setMobileFilters(false)}
+                aria-label="Fechar filtros"
               >
                 <X size={18} />
               </button>
@@ -187,6 +184,7 @@ export default function Shop() {
               {categories.map(item => (
                 <button
                   key={item}
+                  aria-pressed={category === item}
                   className={
                     category === item
                       ? "category-pill-active py-3"

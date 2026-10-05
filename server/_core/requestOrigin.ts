@@ -1,0 +1,100 @@
+import type { Request } from "express";
+
+type OriginRequest = Pick<Request, "get" | "protocol">;
+
+const configuredOriginKeys = [
+  "APP_URL",
+  "PUBLIC_APP_URL",
+  "VERCEL_URL",
+  "VERCEL_PROJECT_PRODUCTION_URL",
+] as const;
+
+function parseOrigin(value: string, label: string) {
+  const trimmed = value.trim();
+  if (!trimmed || /[\r\n]/.test(trimmed)) {
+    throw new Error(`${label} não contém uma origem válida`);
+  }
+  const candidate = /^[a-z][a-z\d+.-]*:\/\//i.test(trimmed)
+    ? trimmed
+    : `https://${trimmed}`;
+  let url: URL;
+  try {
+    url = new URL(candidate);
+  } catch {
+    throw new Error(`${label} não contém uma origem válida`);
+  }
+  if (
+    !["http:", "https:"].includes(url.protocol) ||
+    url.username ||
+    url.password ||
+    url.pathname !== "/" ||
+    url.search ||
+    url.hash
+  ) {
+    throw new Error(`${label} deve ser uma origem HTTP(S) sem caminho`);
+  }
+  const isLocalHost = ["localhost", "127.0.0.1", "[::1]"].includes(
+    url.hostname.toLowerCase()
+  );
+  if (url.protocol !== "https:" && !isLocalHost) {
+    throw new Error(`${label} tem de usar HTTPS fora do ambiente local`);
+  }
+  return url.origin;
+}
+
+/**
+ * Returns the trusted public origin for OAuth callbacks, recovery links and
+ * payment redirects. Configured deployment URLs always take precedence over
+ * request-controlled Origin/Host headers.
+ */
+export function resolveAppOrigin(req: OriginRequest) {
+  for (const key of configuredOriginKeys) {
+    const value = process.env[key]?.trim();
+    if (value) return parseOrigin(value, key);
+  }
+
+  if (process.env.NODE_ENV === "production") {
+    throw new Error(
+      "Configure APP_URL (ou o domínio Vercel) antes de ativar fluxos de conta e pagamento"
+    );
+  }
+
+  const host = req.get("host")?.trim();
+  if (!host) throw new Error("Origem pública indisponível");
+  const protocol = req.protocol.toLowerCase();
+  if (protocol !== "http" && protocol !== "https") {
+    throw new Error("Protocolo público inválido");
+  }
+  const requestOrigin = parseOrigin(`${protocol}://${host}`, "Host do pedido");
+  const headerOrigin = req.get("origin");
+  if (headerOrigin) {
+    const suppliedOrigin = parseOrigin(headerOrigin, "Origin do pedido");
+    if (suppliedOrigin !== requestOrigin) {
+      throw new Error(
+        "Origin do pedido não corresponde ao domínio da aplicação"
+      );
+    }
+  }
+  return requestOrigin;
+}
+
+/**
+ * Rejects cross-site browser writes before they reach auth, checkout or other
+ * API mutations. Stripe webhooks are mounted earlier with their raw-body parser.
+ */
+export function isSameOriginMutation(
+  req: OriginRequest & Pick<Request, "method">
+) {
+  const origin = req.get("origin");
+  const host = req.get("host")?.trim();
+  if (!origin || !host) return false;
+  try {
+    const expectedOrigin = parseOrigin(
+      `${req.protocol.toLowerCase()}://${host}`,
+      "Host do pedido"
+    );
+    return parseOrigin(origin, "Origin do pedido") === expectedOrigin;
+  } catch {
+    return false;
+  }
+}
