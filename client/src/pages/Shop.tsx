@@ -23,7 +23,9 @@ import {
 
 const categories: Array<"Todos" | Category> = [
   "Todos",
-  ...categoryMeta.map(category => category.label),
+  ...categoryMeta
+    .map(category => category.label)
+    .filter(category => category !== "Outdoor"),
 ];
 
 const normalizeSearch = (value: string) =>
