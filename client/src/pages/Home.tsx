@@ -163,8 +163,16 @@ export default function Home() {
                 <div
                   className={`category-art bg-gradient-to-br ${category.tone}`}
                 >
-                  <span className="category-symbol">{category.symbol}</span>
-                  <span className="category-arrow">
+                  <img
+                    src={category.image}
+                    alt={`${category.label} — ${category.note}`}
+                    className="absolute inset-0 h-full w-full object-cover opacity-75 mix-blend-multiply transition-transform duration-500 group-hover:scale-105"
+                    loading="lazy"
+                    decoding="async"
+                  />
+                  <span className="absolute inset-0 bg-white/20" aria-hidden="true" />
+                  <span className="category-symbol relative z-10">{category.symbol}</span>
+                  <span className="category-arrow relative z-10">
                     <ArrowUpRight size={20} />
                   </span>
                 </div>
