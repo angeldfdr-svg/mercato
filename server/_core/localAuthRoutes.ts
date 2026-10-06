@@ -161,6 +161,28 @@ export function registerLocalAuthRoutes(app: Express) {
     }
   });
 
+  app.patch("/api/auth/profile", async (req, res) => {
+    const user = await import("../localAuth").then(({ authenticateSupabaseRequest }) => authenticateSupabaseRequest(req));
+    if (!user || user.loginMethod !== "supabase" || !user.openId) {
+      return res.status(401).json({ error: "É necessário iniciar sessão" });
+    }
+    const name = bodyString(req.body?.name);
+    const phone = bodyString(req.body?.phone);
+    const avatarUrl = bodyString(req.body?.avatarUrl);
+    if (name.length < 2 || name.length > 100 || phone.length > 30 || avatarUrl.length > 1_400_000) {
+      return res.status(400).json({ error: "Verifique os dados do perfil" });
+    }
+    try {
+      const updated = await import("../localAuth").then(({ updateSupabaseUser }) =>
+        updateSupabaseUser(user.openId!, { name, phone, avatarUrl })
+      );
+      return res.json({ user: updated.user ?? null });
+    } catch (error) {
+      console.error("[Auth] Profile update failed", error);
+      return res.status(500).json({ error: "Não foi possível guardar o perfil" });
+    }
+  });
+
   app.post("/api/auth/logout", async (req, res) => {
     try {
       await destroyLocalSession(req, res);

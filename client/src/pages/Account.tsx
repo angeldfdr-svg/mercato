@@ -1,18 +1,27 @@
 import {
   ArrowRight,
   CheckCircle2,
+  Camera,
   CreditCard,
+  Edit3,
   LogOut,
   MapPin,
   Package,
+  Save,
   Store,
   UserRound,
 } from "lucide-react";
 import { Link } from "wouter";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { startLocalLogin } from "@/const";
 import { trpc } from "@/lib/trpc";
+
+type UserWithProfile = {
+  phone?: string;
+  avatarUrl?: string;
+};
 
 function formatOrderAmount(cents: number, currency: string) {
   return new Intl.NumberFormat("pt-PT", {
@@ -22,10 +31,57 @@ function formatOrderAmount(cents: number, currency: string) {
 }
 
 export default function Account() {
-  const { user, isAuthenticated, loading, logout } = useAuth();
+  const { user, isAuthenticated, loading, logout, refresh } = useAuth();
+  const [editingProfile, setEditingProfile] = useState(false);
+  const [savingProfile, setSavingProfile] = useState(false);
+  const [profileError, setProfileError] = useState("");
+  const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [avatarUrl, setAvatarUrl] = useState("");
   const orders = trpc.orders.list.useQuery(undefined, {
     enabled: isAuthenticated,
   });
+
+  useEffect(() => {
+    if (!user) return;
+    setName(user.name ?? "");
+    setPhone((user as UserWithProfile).phone ?? "");
+    setAvatarUrl((user as UserWithProfile).avatarUrl ?? "");
+  }, [user]);
+
+  const saveProfile = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setSavingProfile(true);
+    setProfileError("");
+    try {
+      const response = await fetch("/api/auth/profile", {
+        method: "PATCH",
+        headers: { "content-type": "application/json" },
+        credentials: "same-origin",
+        body: JSON.stringify({ name, phone, avatarUrl }),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.error ?? "Não foi possível guardar o perfil");
+      await refresh();
+      setEditingProfile(false);
+    } catch (error) {
+      setProfileError(error instanceof Error ? error.message : "Não foi possível guardar o perfil");
+    } finally {
+      setSavingProfile(false);
+    }
+  };
+
+  const chooseAvatar = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/") || file.size > 1_000_000) {
+      setProfileError("Escolha uma imagem até 1 MB.");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => setAvatarUrl(typeof reader.result === "string" ? reader.result : "");
+    reader.readAsDataURL(file);
+  };
   if (loading)
     return (
       <div className="account-page">
@@ -110,14 +166,46 @@ export default function Account() {
           </p>
         </div>
         <div className="account-card account-card-wide">
-          <div>
-            <p className="section-kicker">O seu perfil</p>
-            <h2>{user?.name ?? "Cliente Mercato"}</h2>
-            <p>{user?.email ?? "Email não disponível"}</p>
-          </div>
-          <div className="profile-avatar">
-            {(user?.name ?? "M").slice(0, 1).toUpperCase()}
-          </div>
+          {!editingProfile ? (
+            <>
+              <div>
+                <p className="section-kicker">O seu perfil</p>
+                <h2>{user?.name ?? "Cliente Mercato"}</h2>
+                <p>{user?.email ?? "Email não disponível"}</p>
+                {(user as UserWithProfile)?.phone && <p>{(user as UserWithProfile).phone}</p>}
+                <button type="button" className="text-link mt-5" onClick={() => setEditingProfile(true)}>
+                  Editar perfil <Edit3 size={15} />
+                </button>
+              </div>
+              {(user as UserWithProfile)?.avatarUrl ? (
+                <img className="profile-avatar object-cover" src={(user as UserWithProfile).avatarUrl} alt="Fotografia do perfil" />
+              ) : (
+                <div className="profile-avatar">{(user?.name ?? "M").slice(0, 1).toUpperCase()}</div>
+              )}
+            </>
+          ) : (
+            <form className="w-full text-left" onSubmit={saveProfile}>
+              <div className="flex flex-wrap items-start justify-between gap-4">
+                <div>
+                  <p className="section-kicker">Editar perfil</p>
+                  <h2>Os seus dados.</h2>
+                </div>
+                <label className="profile-avatar profile-upload cursor-pointer" aria-label="Escolher fotografia de perfil">
+                  {avatarUrl ? <img className="h-full w-full rounded-full object-cover" src={avatarUrl} alt="Pré-visualização da fotografia" /> : <Camera size={22} />}
+                  <input className="sr-only" type="file" accept="image/*" onChange={chooseAvatar} />
+                </label>
+              </div>
+              <div className="mt-6 grid gap-4 sm:grid-cols-2">
+                <label className="auth-form-field"><span>Nome</span><input value={name} onChange={event => setName(event.target.value)} minLength={2} maxLength={100} required /></label>
+                <label className="auth-form-field"><span>Telemóvel</span><input value={phone} onChange={event => setPhone(event.target.value)} maxLength={30} placeholder="+351 900 000 000" /></label>
+              </div>
+              {profileError && <p className="auth-provider-message mt-4" role="alert">{profileError}</p>}
+              <div className="mt-6 flex flex-wrap gap-3">
+                <Button type="submit" disabled={savingProfile} className="rounded-full bg-[#155eef]">{savingProfile ? "A guardar..." : "Guardar perfil"} <Save size={16} /></Button>
+                <button type="button" className="text-link" onClick={() => { setEditingProfile(false); setProfileError(""); }}>Cancelar</button>
+              </div>
+            </form>
+          )}
         </div>
       </div>
       {user?.role === "admin" && (
