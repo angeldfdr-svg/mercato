@@ -42,6 +42,11 @@ export class SupabaseAuthError extends Error {
   }
 }
 
+type SupabaseAuthResponse = {
+  access_token?: string;
+  user?: { id: string; email?: string; user_metadata?: { name?: string } };
+};
+
 export async function supabaseAuthRequest(path: string, body: Record<string, unknown>) {
   const { url, key } = supabaseConfig();
   const response = await fetch(`${url}/auth/v1${path}`, {
@@ -61,7 +66,30 @@ export async function supabaseAuthRequest(path: string, body: Record<string, unk
       data.error_code ?? data.code,
     );
   }
-  return data as { access_token?: string; user?: { id: string; email?: string; user_metadata?: { name?: string } } };
+  return data as SupabaseAuthResponse;
+}
+
+export async function confirmSupabaseUser(userId: string) {
+  const { url } = supabaseConfig();
+  const serviceKey = (process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.SUPABASE_SECRET_KEY)?.trim();
+  if (!serviceKey) throw new Error("Supabase admin key não está configurada");
+  const response = await fetch(`${url}/auth/v1/admin/users/${encodeURIComponent(userId)}`, {
+    method: "PUT",
+    headers: {
+      apikey: serviceKey,
+      authorization: `Bearer ${serviceKey}`,
+      "content-type": "application/json",
+    },
+    body: JSON.stringify({ email_confirm: true }),
+  });
+  if (!response.ok) {
+    const data = await response.json().catch(() => ({}));
+    throw new SupabaseAuthError(
+      data.msg ?? data.message ?? "Não foi possível confirmar a conta",
+      response.status,
+      data.error_code ?? data.code,
+    );
+  }
 }
 
 export function setSupabaseSession(accessToken: string, res: Response, req: Request) {

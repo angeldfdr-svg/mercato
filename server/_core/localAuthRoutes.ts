@@ -2,6 +2,7 @@ import { createHash, randomBytes } from "node:crypto";
 import type { Express } from "express";
 import * as db from "../db";
 import {
+  confirmSupabaseUser,
   createLocalSession,
   destroyLocalSession,
   hashPassword,
@@ -78,24 +79,41 @@ export function registerLocalAuthRoutes(app: Express) {
     }
 
     try {
-      const data = await supabaseAuthRequest("/signup", {
+      let data = await supabaseAuthRequest("/signup", {
         email,
         password,
         data: { name },
       });
-      if (data.access_token) setSupabaseSession(data.access_token, res, req);
-      return res.status(201).json({ user: data.user ?? null, needsConfirmation: !data.access_token });
+
+      // The project requires email confirmation by default. Confirm the newly
+      // created account server-side, then issue a normal session so the user
+      // can continue directly into the app without a dead-end confirmation step.
+      if (!data.access_token && data.user?.id) {
+        await confirmSupabaseUser(data.user.id);
+        data = await supabaseAuthRequest("/token?grant_type=password", {
+          email,
+          password,
+        });
+      }
+      if (!data.access_token) {
+        return res.status(502).json({ error: "Não foi possível iniciar a sessão após criar a conta" });
+      }
+      setSupabaseSession(data.access_token, res, req);
+      return res.status(201).json({ user: data.user ?? null, needsConfirmation: false });
     } catch (error) {
       console.error("[Auth] Register failed", error);
       if (error instanceof SupabaseAuthError) {
         const message =
           error.code === "user_already_exists"
             ? "Já existe uma conta com este email."
-            : error.status === 401 || error.status === 403
-              ? "O pedido de criação de conta não foi autorizado pelo Supabase. Verifique se o provider Email está ativo."
-              : error.status === 422
-                ? error.message
-                : "Não foi possível criar a conta";
+            : error.code === "over_email_send_rate_limit" || error.status === 429
+              ? "O serviço de email do Supabase atingiu o limite temporário. Tente novamente mais tarde."
+              : error.status === 401 || error.status === 403
+                ? "O pedido de criação de conta não foi autorizado pelo Supabase. Verifique se o provider Email está ativo."
+                : error.status === 422
+                  ? error.message
+                  : "Não foi possível criar a conta";
+
         return res.status(error.status >= 400 && error.status < 500 ? error.status : 500).json({ error: message });
       }
       return res.status(500).json({ error: "Não foi possível criar a conta" });
