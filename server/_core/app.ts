@@ -45,15 +45,15 @@ export async function createApp(
   app.use(express.json({ limit: "256kb" }));
   app.use(express.urlencoded({ limit: "64kb", extended: false }));
   app.use((req, res, next) => {
-    if (
-      !req.path.startsWith("/api/") ||
-      ["GET", "HEAD", "OPTIONS"].includes(req.method)
-    ) {
-      return next();
-    }
-    if (!isSameOriginMutation(req)) {
-      return res.status(403).json({ error: "Origem do pedido não autorizada" });
-    }
+  if (
+    !req.path.startsWith("/api/") ||
+    ["GET", "HEAD", "OPTIONS"].includes(req.method)
+  ) {
+    return next();
+  }
+  if (!isSameOriginMutation(req)) {
+    return res.status(403).json({ error: "Origem do pedido não autorizada" });
+  }
     return next();
   });
   app.get("/api/health", (_req: Request, res: Response) =>

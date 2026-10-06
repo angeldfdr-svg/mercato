@@ -42,6 +42,11 @@ export class SupabaseAuthError extends Error {
   }
 }
 
+type SupabaseAuthResponse = {
+  access_token?: string;
+  user?: { id: string; email?: string; user_metadata?: { name?: string } };
+};
+
 export async function supabaseAuthRequest(path: string, body: Record<string, unknown>) {
   const { url, key } = supabaseConfig();
   const response = await fetch(`${url}/auth/v1${path}`, {
@@ -61,7 +66,63 @@ export async function supabaseAuthRequest(path: string, body: Record<string, unk
       data.error_code ?? data.code,
     );
   }
-  return data as { access_token?: string; user?: { id: string; email?: string; user_metadata?: { name?: string } } };
+  return data as SupabaseAuthResponse;
+}
+
+export async function updateSupabaseUser(
+  userId: string,
+  updates: { name?: string; phone?: string; avatarUrl?: string }
+) {
+  const { url } = supabaseConfig();
+  const serviceKey = (process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.SUPABASE_SECRET_KEY)?.trim();
+  if (!serviceKey) throw new Error("Supabase admin key não está configurada");
+  const response = await fetch(`${url}/auth/v1/admin/users/${encodeURIComponent(userId)}`, {
+    method: "PUT",
+    headers: {
+      apikey: serviceKey,
+      authorization: `Bearer ${serviceKey}`,
+      "content-type": "application/json",
+    },
+    body: JSON.stringify({
+      user_metadata: {
+        ...(updates.name !== undefined ? { name: updates.name } : {}),
+        ...(updates.phone !== undefined ? { phone: updates.phone } : {}),
+        ...(updates.avatarUrl !== undefined ? { avatar_url: updates.avatarUrl } : {}),
+      },
+    }),
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new SupabaseAuthError(
+      data.msg ?? data.message ?? "Não foi possível atualizar o perfil",
+      response.status,
+      data.error_code ?? data.code,
+    );
+  }
+  return data as SupabaseAuthResponse;
+}
+
+export async function confirmSupabaseUser(userId: string) {
+  const { url } = supabaseConfig();
+  const serviceKey = (process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.SUPABASE_SECRET_KEY)?.trim();
+  if (!serviceKey) throw new Error("Supabase admin key não está configurada");
+  const response = await fetch(`${url}/auth/v1/admin/users/${encodeURIComponent(userId)}`, {
+    method: "PUT",
+    headers: {
+      apikey: serviceKey,
+      authorization: `Bearer ${serviceKey}`,
+      "content-type": "application/json",
+    },
+    body: JSON.stringify({ email_confirm: true }),
+  });
+  if (!response.ok) {
+    const data = await response.json().catch(() => ({}));
+    throw new SupabaseAuthError(
+      data.msg ?? data.message ?? "Não foi possível confirmar a conta",
+      response.status,
+      data.error_code ?? data.code,
+    );
+  }
 }
 
 export function setSupabaseSession(accessToken: string, res: Response, req: Request) {
@@ -75,10 +136,24 @@ export async function authenticateSupabaseRequest(req: Request): Promise<User | 
   try {
     const { payload } = await jwtVerify(token, new TextEncoder().encode(secret), { algorithms: ["HS256"] });
     if (typeof payload.sub !== "string" || typeof payload.email !== "string") return null;
-    const metadata = payload.user_metadata as { name?: unknown } | undefined;
+    const metadata = payload.user_metadata as { name?: unknown; phone?: unknown; avatar_url?: unknown } | undefined;
     const numericId = Number.parseInt(payload.sub.replaceAll(/[^0-9]/g, "").slice(0, 9) || "1", 10) || 1;
     const now = new Date();
-    return { id: numericId, openId: payload.sub, name: typeof metadata?.name === "string" ? metadata.name : payload.email.split("@")[0], email: payload.email, loginMethod: "supabase", passwordHash: null, googleId: null, role: "user", createdAt: now, updatedAt: now, lastSignedIn: now };
+    return {
+      id: numericId,
+      openId: payload.sub,
+      name: typeof metadata?.name === "string" ? metadata.name : payload.email.split("@")[0],
+      email: payload.email,
+      phone: typeof metadata?.phone === "string" ? metadata.phone : "",
+      avatarUrl: typeof metadata?.avatar_url === "string" ? metadata.avatar_url : "",
+      loginMethod: "supabase",
+      passwordHash: null,
+      googleId: null,
+      role: "user",
+      createdAt: now,
+      updatedAt: now,
+      lastSignedIn: now,
+    } as User & { phone: string; avatarUrl: string };
   } catch { return null; }
 }
 
