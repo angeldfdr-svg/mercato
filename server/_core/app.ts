@@ -21,7 +21,9 @@ export async function createApp(
 ): Promise<Application> {
   const app = express();
   app.disable("x-powered-by");
-  if (process.env.VERCEL) app.set("trust proxy", 1);
+  // The preview and production runtimes sit behind a reverse proxy even when
+  // the VERCEL flag is not forwarded to the application process.
+  app.set("trust proxy", 1);
   app.use((_req, res, next) => {
     res.setHeader("X-Content-Type-Options", "nosniff");
     res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");

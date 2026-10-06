@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ArrowUpRight, Check, Star } from "lucide-react";
+import { ArrowUpRight, Check, Heart, Star } from "lucide-react";
 import { motion } from "framer-motion";
 import { Link } from "wouter";
 import { toast } from "sonner";
@@ -19,7 +19,21 @@ export function ProductCard({
   compact?: boolean;
 }) {
   const [added, setAdded] = useState(false);
+  const [favorite, setFavorite] = useState(() => {
+    try {
+      return window.localStorage.getItem(`mercato-favorite-${product.id}`) === "1";
+    } catch {
+      return false;
+    }
+  });
   const cart = useCart();
+  const toggleFavorite = () => {
+    const next = !favorite;
+    setFavorite(next);
+    try {
+      window.localStorage.setItem(`mercato-favorite-${product.id}`, next ? "1" : "0");
+    } catch {}
+  };
   const add = () => {
     if (!cart.addItem(product)) {
       toast.error("O carrinho atingiu o limite de artigos.");
@@ -56,6 +70,15 @@ export function ProductCard({
         {product.badge && (
           <span className="product-badge">{product.badge}</span>
         )}
+        <button
+          type="button"
+          className="icon-button absolute right-3 top-3 z-10 bg-white/90"
+          onClick={toggleFavorite}
+          aria-pressed={favorite}
+          aria-label={favorite ? `Remover ${product.name} dos favoritos` : `Adicionar ${product.name} aos favoritos`}
+        >
+          <Heart size={17} fill={favorite ? "currentColor" : "none"} className={favorite ? "text-[#ef6b6b]" : ""} />
+        </button>
         <button
           type="button"
           className={cn("quick-add", added && "quick-add-success")}

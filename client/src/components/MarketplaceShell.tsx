@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ArrowRight,
   ArrowUpRight,
+  Heart,
   Menu,
   Minus,
   Plus,
@@ -148,25 +149,7 @@ export function MarketplaceShell({ children }: { children: React.ReactNode }) {
               >
                 Descobrir
               </button>
-              {(["Casa", "Tech", "Estilo"] as const).map(
-                category => {
-                  const active =
-                    currentPath === "/shop" && currentCategory === category;
-                  return (
-                    <button
-                      key={category}
-                      type="button"
-                      className={cn("nav-link", active && "nav-link-active")}
-                      onClick={() =>
-                        goTo(`/shop?category=${encodeURIComponent(category)}`)
-                      }
-                      aria-current={active ? "page" : undefined}
-                    >
-                      {category}
-                    </button>
-                  );
-                }
-              )}
+
             </nav>
             <form
               onSubmit={submitSearch}
@@ -201,6 +184,14 @@ export function MarketplaceShell({ children }: { children: React.ReactNode }) {
                 aria-label={isAuthenticated ? "Abrir conta" : "Iniciar sessão"}
               >
                 <UserRound size={19} />
+              </button>
+              <button
+                type="button"
+                className="icon-button hidden sm:inline-flex"
+                onClick={() => goTo("/favorites")}
+                aria-label="Abrir favoritos"
+              >
+                <Heart size={19} />
               </button>
               <button
                 type="button"

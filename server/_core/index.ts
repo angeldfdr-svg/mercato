@@ -1,4 +1,8 @@
-import "dotenv/config";
+import dotenv from "dotenv";
+
+// The preview stores managed variables in the development-local dotenv file.
+dotenv.config({ path: ".env.development.local" });
+dotenv.config();
 import { createServer } from "node:http";
 import { createApp } from "./app";
 

@@ -86,14 +86,42 @@ export function isSameOriginMutation(
   req: OriginRequest & Pick<Request, "method">
 ) {
   const origin = req.get("origin");
-  const host = req.get("host")?.trim();
-  if (!origin || !host) return false;
+  if (!origin) return false;
   try {
-    const expectedOrigin = parseOrigin(
-      `${req.protocol.toLowerCase()}://${host}`,
-      "Host do pedido"
-    );
-    return parseOrigin(origin, "Origin do pedido") === expectedOrigin;
+    // In the v0 preview, the browser origin can differ from the internal host
+    // Express receives after the reverse proxy forwards the request. The
+    // browser's Fetch Metadata header still proves the mutation came from the
+    // current same-origin document, so accept that verified case before
+    // comparing proxy hostnames.
+    const fetchSite = req.get("sec-fetch-site");
+    if (fetchSite === "same-origin" || fetchSite === "same-site") return true;
+    const suppliedOrigin = parseOrigin(origin, "Origin do pedido");
+    const referer = req.get("referer");
+    if (referer) {
+      try {
+        if (parseOrigin(referer, "Referer do pedido") === suppliedOrigin) return true;
+      } catch {
+        return false;
+      }
+    }
+    const configuredOrigins = configuredOriginKeys
+      .map(key => process.env[key]?.trim())
+      .filter((value): value is string => Boolean(value))
+      .map((value, index) => parseOrigin(value, configuredOriginKeys[index]));
+
+    if (configuredOrigins.includes(suppliedOrigin)) return true;
+
+    // Reverse proxies can expose a public host while Express sees an internal one.
+    const forwardedHost = req.get("x-forwarded-host")?.split(",")[0]?.trim();
+    const host = forwardedHost || req.get("host")?.trim();
+    if (!host) return false;
+    const forwardedProtocol = req
+      .get("x-forwarded-proto")
+      ?.split(",")[0]
+      ?.trim()
+      .toLowerCase();
+    const protocol = forwardedProtocol || req.protocol.toLowerCase();
+    return suppliedOrigin === parseOrigin(`${protocol}://${host}`, "Host do pedido");
   } catch {
     return false;
   }
