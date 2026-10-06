@@ -37,72 +37,84 @@ export const categoryMeta: Array<{
   note: string;
   tone: string;
   symbol: string;
+  image: string;
 }> = [
   {
     label: "Casa",
     note: "Peças para viver melhor",
     tone: "from-[#d7f64a] to-[#efff9e]",
     symbol: "⌂",
+    image: "/products/arc-lounge-chair.webp",
   },
   {
     label: "Tech",
     note: "Ferramentas que acompanham",
     tone: "from-[#155eef] to-[#73a1ff]",
     symbol: "↗",
+    image: "/products/flow-keyboard.webp",
   },
   {
     label: "Estilo",
     note: "O essencial, bem escolhido",
     tone: "from-[#ffc7b8] to-[#ffe1d8]",
     symbol: "✳",
+    image: "/products/brisa-scarf.webp",
   },
   {
     label: "Bem-estar",
     note: "Ritmos mais leves",
     tone: "from-[#d9d3ff] to-[#f2f0ff]",
     symbol: "≈",
+    image: "/products/calma-massage-roller.webp",
   },
   {
     label: "Cozinha",
     note: "Rituais para a mesa",
     tone: "from-[#f4d9b2] to-[#fff1d6]",
     symbol: "◒",
+    image: "/products/serra-chef-knife.webp",
   },
   {
     label: "Outdoor",
     note: "Lá fora, com conforto",
     tone: "from-[#b9d8bb] to-[#e6f0d8]",
     symbol: "⌁",
+    image: "/products/serra-trekking-poles.webp",
   },
   {
     label: "Papelaria",
     note: "Ideias que ganham forma",
     tone: "from-[#c9e4df] to-[#eff7eb]",
     symbol: "✎",
+    image: "/products/atelier-sketchbook.webp",
   },
   {
     label: "Crianças",
     note: "Pequenas grandes descobertas",
     tone: "from-[#ffcbb8] to-[#fff0ce]",
     symbol: "✦",
+    image: "/products/arco-wooden-blocks.webp",
   },
   {
     label: "Animais",
     note: "Conforto para toda a família",
     tone: "from-[#e2d6f2] to-[#f6f1fa]",
     symbol: "♡",
+    image: "/products/cama-nuvem-pet.webp",
   },
   {
     label: "Escritório",
     note: "Mais espaço para as ideias",
     tone: "from-[#c5dcf1] to-[#edf5fb]",
     symbol: "▤",
+    image: "/products/alto-monitor-riser.webp",
   },
   {
     label: "Desporto",
     note: "Equipamento para entrar em movimento",
     tone: "from-[#b9d4d2] to-[#e5f3e8]",
     symbol: "↗",
+    image: "/products/vento-running-shoes.webp",
   },
 ];
 
