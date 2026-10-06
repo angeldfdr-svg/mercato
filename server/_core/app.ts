@@ -47,8 +47,7 @@ export async function createApp(
   app.use((req, res, next) => {
   if (
     !req.path.startsWith("/api/") ||
-    ["GET", "HEAD", "OPTIONS"].includes(req.method) ||
-    req.path.startsWith("/api/auth/")
+    ["GET", "HEAD", "OPTIONS"].includes(req.method)
   ) {
     return next();
   }
